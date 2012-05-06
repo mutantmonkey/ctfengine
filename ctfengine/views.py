@@ -6,6 +6,8 @@ from ctfengine import database
 from ctfengine import lib
 from ctfengine import models
 
+flags = lib.load_flags(app.config['FLAG_PATH'])
+
 
 @app.route('/')
 def index():
@@ -21,40 +23,45 @@ def index():
 
 @app.route('/submit', methods=['POST'])
 def submit_flag():
-    flags = lib.load_flags(app.config['FLAG_PATH'])
-
     entered_handle = request.form['handle'].strip()
     entered_flag = request.form['flag'].strip()
-    if len(entered_handle) > 0 and len(entered_flag) > 0:
-        if entered_flag not in flags:
-            flash("That is not a valid flag.")
-            return redirect(url_for('index'))
+    if len(entered_handle) <= 0 or len(entered_flag) <= 0:
+        return make_error("Please enter a handle and a flag.")
+    if entered_flag not in flags:
+        return make_error(request, "That is not a valid flag.")
 
-        flag = flags[entered_flag]
+    flag = flags[entered_flag]
 
-        # search for handle
-        handle = models.Handle.get(entered_handle)
-        if not handle:
-            handle = models.Handle(entered_handle, 0)
-            database.conn.add(handle)
-            database.conn.commit()
-
-        existing_entry = models.FlagEntry.query.filter(
-                models.FlagEntry.handle == handle.id,
-                models.FlagEntry.hostname == flag['hostname']).first()
-        if existing_entry:
-            flash("You may not resubmit flags.")
-            return redirect(url_for('index'))
-
-        handle.score += flag['points']
+    # search for handle
+    handle = models.Handle.get(entered_handle)
+    if not handle:
+        handle = models.Handle(entered_handle, 0)
+        database.conn.add(handle)
         database.conn.commit()
 
-        entry = models.FlagEntry(handle.id, flag['hostname'])
-        database.conn.add(entry)
-        database.conn.commit()
+    existing_entry = models.FlagEntry.query.filter(
+            models.FlagEntry.handle == handle.id,
+            models.FlagEntry.hostname == flag['hostname']).first()
+    if existing_entry:
+        return make_error(request, "You may not resubmit flags.")
 
-        if request.wants_json():
-            return jsonify(entry.serialize())
-        
-        flash("Flag scored.")
+    handle.score += flag['points']
+    database.conn.commit()
+
+    entry = models.FlagEntry(handle.id, flag['hostname'])
+    database.conn.add(entry)
+    database.conn.commit()
+
+    if request.wants_json():
+        return jsonify(entry.serialize())
+    flash("Flag scored.")
+    return redirect(url_for('index'))
+
+def make_error(request, msg, code=400):
+    if request.wants_json():
+        response = jsonify({'message': msg})
+        response.status_code = code
+        return response
+    else:
+        flash(msg)
         return redirect(url_for('index'))
