@@ -14,6 +14,18 @@
             </header>
 
             <div id='content'>
+                {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                    <section>
+                    <ul id='flashes'>
+                        {% for msg in messages %}
+                        <li>{{ msg }}</li>
+                        {% endfor %}
+                    </ul>
+                    </section>
+                    {% endif %}
+                {% endwith %}
+
                 {% block content %}{% endblock %}
             </div>
         </div>

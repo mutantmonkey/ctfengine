@@ -16,13 +16,15 @@
 <section id='submit'>
     <h2>Submit a Flag</h2>
     <form action='/submit' method='post'>
-        <label for='handle'>Handle</label>
-        <input type='text' name='handle' id='handle' required='required' placeholder='crashoverride' />
+        <input type='text' name='handle' id='handle'
+            title="Enter the handle you wish to be identified by on the scoreboard."
+            required='required' placeholder='Handle' />
 
-        <label for='flag'>Flag</label>
-        <input type='text' name='flag' id='flag' required='required' placeholder='love' />
+        <input type='text' name='flag' id='flag' 
+            title="Enter a flag here to have it scored."
+            required='required' placeholder='Flag' />
 
-        <button type='submit'>Submit</button>
+        <button type='submit'>Score</button>
     </form>
 </section>
 {% endblock %}

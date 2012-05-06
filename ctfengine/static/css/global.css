@@ -31,9 +31,9 @@ header h1 {
     border: 1px solid #433A4A;
 }
 
-#content section
+#content section + section
 {
-    margin: 0 0 24px 0;
+    margin-top: 24px;
 }
 
 #content h1,
@@ -80,8 +80,25 @@ header h1 {
 }
 
 table.scores {
-    width: 100%;
+    margin: 0;
+    border: 1px solid #433A4A;
+    border-collapse: collapse;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.75);
 }
+
+table.scores tr > td:first-child {
+    min-width: 300px;
+}
+
+table.scores tr:nth-child(odd) {
+    background: #191919;
+}
+
+table.scores td {
+    margin: 0;
+    padding: 6px;
+}
+
 
 input + label {
     margin-left: 16px;
@@ -89,6 +106,7 @@ input + label {
 
 input,
 button {
+    padding: 4px;
     font-family: Inconsolata, monospace;
 }
 
@@ -103,12 +121,26 @@ button
     color: #000;
     background: #433A4A;
     border: 1px solid #433A4A;
+    font-weight: bold;
 
     border-radius: 4px;
     -moz-border-radius: 4px;
     -webkit-border-radius: 4px;
 }
 
+button:hover
+{
+    border: 1px solid #000;
+}
+
+input:focus,
+button:active
+{
+    outline: 0;
+    -webkit-box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
+       -moz-box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
+}
 :-moz-placeholder
 {
     color: #444;

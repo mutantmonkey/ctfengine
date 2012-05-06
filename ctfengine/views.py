@@ -1,4 +1,5 @@
-from flask import abort, render_template, request, jsonify
+from flask import abort, flash, jsonify, render_template, request, redirect, \
+        url_for
 
 from ctfengine import app
 from ctfengine import database
@@ -26,7 +27,8 @@ def submit_flag():
     entered_flag = request.form['flag'].strip()
     if len(entered_handle) > 0 and len(entered_flag) > 0:
         if entered_flag not in flags:
-            return "not a valid flag"
+            flash("That is not a valid flag.")
+            return redirect(url_for('index'))
 
         flag = flags[entered_flag]
 
@@ -41,7 +43,8 @@ def submit_flag():
                 models.FlagEntry.handle == handle.id,
                 models.FlagEntry.hostname == flag['hostname']).first()
         if existing_entry:
-            return "you may not resubmit flags"
+            flash("You may not resubmit flags.")
+            return redirect(url_for('index'))
 
         handle.score += flag['points']
         database.conn.commit()
@@ -50,4 +53,8 @@ def submit_flag():
         database.conn.add(entry)
         database.conn.commit()
 
-        return jsonify(entry.serialize())
+        if request.wants_json():
+            return jsonify(entry.serialize())
+        
+        flash("Flag scored.")
+        return redirect(url_for('index'))
