@@ -1,0 +1,8 @@
+__pycache__
+*.pyc
+*.swp
+*~
+.DS_Store
+ctfengine.db
+ctfengine/config.py
+flags

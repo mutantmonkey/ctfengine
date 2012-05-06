@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<section>
+    <h2>Scores</h2>
+
+    <table class='scores'>
+    {% for handle in scores %}
+        <tr>
+            <td>{{ handle.handle }}</td>
+            <td>{{ handle.score }}</td>
+        </tr>
+    {% endfor %}
+    </table>
+</section>
+
+<section id='submit'>
+    <h2>Submit a Flag</h2>
+    <form action='/submit' method='post'>
+        <label for='handle'>Handle</label>
+        <input type='text' name='handle' id='handle' required='required' placeholder='crashoverride' />
+
+        <label for='flag'>Flag</label>
+        <input type='text' name='flag' id='flag' required='required' placeholder='love' />
+
+        <button type='submit'>Submit</button>
+    </form>
+</section>
+{% endblock %}
