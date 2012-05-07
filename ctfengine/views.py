@@ -1,3 +1,4 @@
+import hashlib
 from flask import abort, flash, jsonify, render_template, request, redirect, \
         url_for
 
@@ -5,9 +6,6 @@ from ctfengine import app
 from ctfengine import database
 from ctfengine import lib
 from ctfengine import models
-
-flags = lib.load_flags(app.config['FLAG_PATH'])
-
 
 @app.route('/')
 def index():
@@ -27,10 +25,10 @@ def submit_flag():
     entered_flag = request.form['flag'].strip()
     if len(entered_handle) <= 0 or len(entered_flag) <= 0:
         return make_error("Please enter a handle and a flag.")
-    if entered_flag not in flags:
-        return make_error(request, "That is not a valid flag.")
 
-    flag = flags[entered_flag]
+    flag = models.Flag.get(entered_flag)
+    if not flag:
+        return make_error(request, "That is not a valid flag.")
 
     # search for handle
     handle = models.Handle.get(entered_handle)
@@ -41,14 +39,14 @@ def submit_flag():
 
     existing_entry = models.FlagEntry.query.filter(
             models.FlagEntry.handle == handle.id,
-            models.FlagEntry.hostname == flag['hostname']).first()
+            models.FlagEntry.hostname == flag.hostname).first()
     if existing_entry:
         return make_error(request, "You may not resubmit flags.")
 
-    handle.score += flag['points']
+    handle.score += flag.points
     database.conn.commit()
 
-    entry = models.FlagEntry(handle.id, flag['hostname'])
+    entry = models.FlagEntry(handle.id, flag.hostname)
     database.conn.add(entry)
     database.conn.commit()
 

@@ -1,5 +1,7 @@
-from sqlalchemy import Column, ForeignKey, Integer, UnicodeText, DateTime, desc
+from sqlalchemy import Column, ForeignKey, Integer, String, UnicodeText, \
+        DateTime, desc
 import datetime
+import hashlib
 
 import ctfengine.database
 
@@ -52,4 +54,40 @@ class Handle(ctfengine.database.Base):
         return {
             'handle': self.handle,
             'score': self.score,
+        }
+
+
+class Flag(ctfengine.database.Base):
+    __tablename__ = "flags"
+    id = Column(Integer, primary_key=True)
+    hostname = Column(UnicodeText())
+    ip = Column(String)
+    flag = Column(String(128), index=True, nullable=False)
+    points = Column(Integer)
+
+    def __init__(self, hostname, ip, flag, points):
+        h = hashlib.sha512()
+        h.update(flag)
+
+        self.hostname = hostname
+        self.ip = ip
+        self.flag = h.hexdigest()
+        self.points = points
+
+    @staticmethod
+    def get(flag):
+        h = hashlib.sha512()
+        h.update(flag)
+        return Flag.query.filter(Flag.flag == h.hexdigest()).first()
+
+    def __repr__(self):
+        return '<Flag: {0}: {1}: {2:d}>'.format(self.hostname, self.ip,
+                self.points)
+
+    def serialize(self):
+        return {
+            'hostname': self.handle,
+            'ip': self.ip,
+            'flag': self.flag,
+            'points': self.points,
         }
