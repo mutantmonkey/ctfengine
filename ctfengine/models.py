@@ -45,7 +45,7 @@ class Handle(ctfengine.database.Base):
 
     @staticmethod
     def topscores(lim=25):
-        return Handle.query.order_by(Handle.score).limit(lim)
+        return Handle.query.order_by(desc(Handle.score)).limit(lim)
 
     def __repr__(self):
         return '<Handle: {0}: {1:d}>'.format(self.handle, self.score)
