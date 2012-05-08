@@ -11,9 +11,9 @@ from ctfengine import models
 def index():
     scores = models.Handle.topscores()
     if request.wants_json():
-        out = {}
+        out = []
         for score in scores:
-            out[score.handle] = score.score
+            out.append({'handle': score.handle, 'score': score.score})
         return jsonify(out)
 
     return render_template('index.html', scores=scores)
