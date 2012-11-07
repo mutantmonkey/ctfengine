@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<section>
+    <h2>Machines</h2>
+
+    <table class='machines'>
+    {% for machine in machines %}
+        <tr {% if machine.dirty %}class='dirty'{%endif%}>
+            <td>{{ machine.hostname }}</td>
+            <td>{% if machine.dirty %}Needs reset{% else %}Ready{% endif %}</td>
+        </tr>
+    {% endfor %}
+    </table>
+</section>
+{% endblock %}

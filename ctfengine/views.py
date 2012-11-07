@@ -45,18 +45,38 @@ def submit_flag():
     if existing_entry:
         return make_error(request, "You may not resubmit flags.")
 
+    # update points for user
     handle.score += flag.points
     database.conn.commit()
 
+    # log flag submission
     entry = models.FlagEntry(handle.id, flag.id, request.remote_addr,
             request.user_agent.string)
     database.conn.add(entry)
     database.conn.commit()
 
+    # mark machine as dirty if necessary
+    if flag.machine:
+        machine = database.conn.query(models.Machine).get(flag.machine)
+        machine.dirty = True
+        database.conn.commit()
+
     if request.wants_json():
         return jsonify(entry.serialize())
     flash("Flag scored.")
     return redirect(url_for('index'))
+
+
+@app.route('/dashboard')
+def dashboard():
+    machines = database.conn.query(models.Machine).all()
+    if request.wants_json():
+        return jsonify({
+            'machines': machines,
+        })
+
+    return render_template('dashboard.html', machines=machines)
+
 
 def make_error(request, msg, code=400):
     if request.wants_json():

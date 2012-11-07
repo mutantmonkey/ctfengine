@@ -1,5 +1,5 @@
 from sqlalchemy import Column, ForeignKey, Integer, String, UnicodeText, \
-        DateTime, Unicode, desc, func
+        DateTime, Unicode, Boolean, desc, func
 import datetime
 import hashlib
 
@@ -68,6 +68,7 @@ class Flag(ctfengine.database.Base):
     name = Column(UnicodeText())
     flag = Column(String(128), index=True, nullable=False)
     points = Column(Integer)
+    machine = Column(Integer, ForeignKey('machines.id'))
 
     def __init__(self, name, flag, points):
         h = hashlib.sha512()
@@ -95,4 +96,23 @@ class Flag(ctfengine.database.Base):
             'name': self.name,
             'flag': self.flag,
             'points': self.points,
+        }
+
+
+class Machine(ctfengine.database.Base):
+    __tablename__ = "machines"
+    id = Column(Integer, primary_key=True)
+    hostname = Column(String(255))
+    dirty = Column(Boolean, default=False)
+
+    def __init__(self, hostname):
+        self.hostname = hostname
+
+    def __repr__(self):
+        return '<Machine: {0}>'.format(self.hostname)
+
+    def serialize(self):
+        return {
+            'hostname': self.hostname,
+            'dirty': self.dirty,
         }
