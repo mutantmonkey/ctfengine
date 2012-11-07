@@ -1,5 +1,5 @@
 from sqlalchemy import Column, ForeignKey, Integer, String, UnicodeText, \
-        DateTime, desc, func
+        DateTime, Unicode, desc, func
 import datetime
 import hashlib
 
@@ -11,12 +11,16 @@ class FlagEntry(ctfengine.database.Base):
     __tablename__ = "flag_entries"
     id = Column(Integer, primary_key=True)
     handle = Column(Integer, ForeignKey('handles.id'))
-    hostname = Column(UnicodeText())
+    hostname = Column(Unicode(255))
     datetime = Column(DateTime(), default=datetime.datetime.now)
+    ip = Column(String(255))
+    user_agent = Column(Unicode(255))
 
-    def __init__(self, handle, hostname):
+    def __init__(self, handle, hostname, ip="", user_agent=""):
         self.handle = handle
         self.hostname = hostname
+        self.ip = ip
+        self.user_agent = user_agent
 
     def __repr__(self):
         return '<FlagEntry: {0:d}: {1}: {2}>'.format(self.handle,

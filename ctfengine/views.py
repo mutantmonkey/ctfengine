@@ -48,7 +48,8 @@ def submit_flag():
     handle.score += flag.points
     database.conn.commit()
 
-    entry = models.FlagEntry(handle.id, flag.hostname)
+    entry = models.FlagEntry(handle.id, flag.hostname, request.remote_addr,
+            request.user_agent.string)
     database.conn.add(entry)
     database.conn.commit()
 
