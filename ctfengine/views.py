@@ -72,7 +72,7 @@ def dashboard():
     machines = database.conn.query(models.Machine).all()
     if request.wants_json():
         return jsonify({
-            'machines': machines,
+            'machines': [m.serialize() for m in machines],
         })
 
     return render_template('dashboard.html', machines=machines)
