@@ -68,7 +68,7 @@ class Flag(ctfengine.database.Base):
 
     def __init__(self, hostname, ip, flag, points):
         h = hashlib.sha512()
-        h.update(flag + ctfengine.config.SECRET_KEY)
+        h.update(flag + ctfengine.config.SALT)
 
         self.hostname = hostname
         self.ip = ip
@@ -78,7 +78,7 @@ class Flag(ctfengine.database.Base):
     @staticmethod
     def get(flag):
         h = hashlib.sha512()
-        h.update(flag + ctfengine.config.SECRET_KEY)
+        h.update(flag + ctfengine.config.SALT)
         return Flag.query.filter(Flag.flag == h.hexdigest()).first()
 
     @staticmethod
