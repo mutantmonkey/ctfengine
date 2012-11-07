@@ -3,6 +3,7 @@ from sqlalchemy import Column, ForeignKey, Integer, String, UnicodeText, \
 import datetime
 import hashlib
 
+import ctfengine.config
 import ctfengine.database
 
 
@@ -67,7 +68,7 @@ class Flag(ctfengine.database.Base):
 
     def __init__(self, hostname, ip, flag, points):
         h = hashlib.sha512()
-        h.update(flag)
+        h.update(flag + ctfengine.config.SECRET_KEY)
 
         self.hostname = hostname
         self.ip = ip
@@ -77,7 +78,7 @@ class Flag(ctfengine.database.Base):
     @staticmethod
     def get(flag):
         h = hashlib.sha512()
-        h.update(flag)
+        h.update(flag + ctfengine.config.SECRET_KEY)
         return Flag.query.filter(Flag.flag == h.hexdigest()).first()
 
     @staticmethod
