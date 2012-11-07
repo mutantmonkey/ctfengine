@@ -11,25 +11,25 @@ class FlagEntry(ctfengine.database.Base):
     __tablename__ = "flag_entries"
     id = Column(Integer, primary_key=True)
     handle = Column(Integer, ForeignKey('handles.id'))
-    hostname = Column(Unicode(255))
+    flag = Column(Integer, ForeignKey('flags.id'))
     datetime = Column(DateTime(), default=datetime.datetime.now)
     ip = Column(String(255))
     user_agent = Column(Unicode(255))
 
-    def __init__(self, handle, hostname, ip="", user_agent=""):
+    def __init__(self, handle, flag, ip="", user_agent=""):
         self.handle = handle
-        self.hostname = hostname
+        self.flag = flag
         self.ip = ip
         self.user_agent = user_agent
 
     def __repr__(self):
         return '<FlagEntry: {0:d}: {1}: {2}>'.format(self.handle,
-                self.hostname, self.datetime)
+                self.flag.name, self.datetime)
 
     def serialize(self):
         return {
             'handle': self.handle,
-            'hostname': self.hostname,
+            'flag_name': self.flag.name,
             'datetime': str(self.datetime),
         }
 
@@ -65,17 +65,15 @@ class Handle(ctfengine.database.Base):
 class Flag(ctfengine.database.Base):
     __tablename__ = "flags"
     id = Column(Integer, primary_key=True)
-    hostname = Column(UnicodeText())
-    ip = Column(String(255))
+    name = Column(UnicodeText())
     flag = Column(String(128), index=True, nullable=False)
     points = Column(Integer)
 
-    def __init__(self, hostname, ip, flag, points):
+    def __init__(self, name, flag, points):
         h = hashlib.sha512()
         h.update(flag + ctfengine.config.SALT)
 
-        self.hostname = hostname
-        self.ip = ip
+        self.name = name
         self.flag = h.hexdigest()
         self.points = points
 
@@ -90,13 +88,11 @@ class Flag(ctfengine.database.Base):
         return func.sum(Flag.points)
 
     def __repr__(self):
-        return '<Flag: {0}: {1}: {2:d}>'.format(self.hostname, self.ip,
-                self.points)
+        return '<Flag: {0}: {2:d}>'.format(self.name, self.points)
 
     def serialize(self):
         return {
-            'hostname': self.handle,
-            'ip': self.ip,
+            'name': self.name,
             'flag': self.flag,
             'points': self.points,
         }

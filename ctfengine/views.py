@@ -41,14 +41,14 @@ def submit_flag():
 
     existing_entry = models.FlagEntry.query.filter(
             models.FlagEntry.handle == handle.id,
-            models.FlagEntry.hostname == flag.hostname).first()
+            models.FlagEntry.flag == flag.id).first()
     if existing_entry:
         return make_error(request, "You may not resubmit flags.")
 
     handle.score += flag.points
     database.conn.commit()
 
-    entry = models.FlagEntry(handle.id, flag.hostname, request.remote_addr,
+    entry = models.FlagEntry(handle.id, flag.id, request.remote_addr,
             request.user_agent.string)
     database.conn.add(entry)
     database.conn.commit()
