@@ -7,7 +7,7 @@
     {% for machine in machines %}
         <tr {% if machine.dirty %}class='dirty'{%endif%}>
             <td>{{ machine.hostname }}</td>
-            <td>{% if machine.dirty %}Needs reset{% else %}Ready{% endif %}</td>
+            <td>{% if machine.dirty %}Needs reset{% else %}Clean{% endif %}</td>
         </tr>
     {% endfor %}
     </table>
