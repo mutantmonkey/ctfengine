@@ -10,11 +10,15 @@ from ctfengine import models
 @app.route('/')
 def index():
     scores = models.Handle.topscores()
+    total_points = database.conn.query(models.Flag.total_points()).first()[0]
     if request.wants_json():
-        out = [(x.handle, x.score) for x in scores]
-        return jsonify(out)
+        return jsonify({
+            'scores': [(x.handle, x.score) for x in scores],
+            'total_points': total_points,
+        })
 
-    return render_template('index.html', scores=scores)
+    return render_template('index.html', scores=scores,
+            total_points=total_points)
 
 
 @app.route('/submit', methods=['POST'])

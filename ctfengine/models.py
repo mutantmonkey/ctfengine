@@ -1,5 +1,5 @@
 from sqlalchemy import Column, ForeignKey, Integer, String, UnicodeText, \
-        DateTime, desc
+        DateTime, desc, func
 import datetime
 import hashlib
 
@@ -79,6 +79,10 @@ class Flag(ctfengine.database.Base):
         h = hashlib.sha512()
         h.update(flag)
         return Flag.query.filter(Flag.flag == h.hexdigest()).first()
+
+    @staticmethod
+    def total_points():
+        return func.sum(Flag.points)
 
     def __repr__(self):
         return '<Flag: {0}: {1}: {2:d}>'.format(self.hostname, self.ip,
