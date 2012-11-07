@@ -66,7 +66,7 @@ class Flag(ctfengine.database.Base):
     __tablename__ = "flags"
     id = Column(Integer, primary_key=True)
     hostname = Column(UnicodeText())
-    ip = Column(String)
+    ip = Column(String(255))
     flag = Column(String(128), index=True, nullable=False)
     points = Column(Integer)
 
