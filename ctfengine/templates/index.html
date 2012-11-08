@@ -1,35 +1,37 @@
 {% extends "base.html" %}
 {% block content %}
-<section>
-    <h2>Scores</h2>
+<div class='multicol'>
+    <section>
+        <h2>Scores</h2>
 
-    <table class='scores'>
-    {% for handle in scores %}
-        <tr>
-            <td>{{ handle.handle }}</td>
-            <td>{{ handle.score }}</td>
-        </tr>
-    {% endfor %}
-    </table>
+        <table class='scores'>
+        {% for handle in scores %}
+            <tr>
+                <td>{{ handle.handle }}</td>
+                <td>{{ handle.score }}</td>
+            </tr>
+        {% endfor %}
+        </table>
 
-    <div class='total_points'>
-        Total points: {{ total_points }}
-    </div>
-</section>
+        <div class='total_points'>
+            Total points: {{ total_points }}
+        </div>
+    </section>
 
-<section id='submit'>
-    <h2>Submit a Flag</h2>
-    <form action="{{ url_for('submit_flag') }}" method='post'>
-        <input type='text' name='handle' id='handle'
-            title="Enter the handle you wish to be identified by on the scoreboard."
-            required='required' placeholder='Handle' />
+    <section id='submit'>
+        <h2>Submit a Flag</h2>
+        <form action="{{ url_for('submit_flag') }}" method='post'>
+            <input type='text' name='handle' id='handle'
+                title="Enter the handle you wish to be identified by on the scoreboard."
+                required='required' placeholder='Handle' />
 
-        <input type='text' name='flag' id='flag' 
-            title="Enter a flag here to have it scored."
-            required='required' placeholder='Flag'
-            autocomplete='off' />
+            <input type='text' name='flag' id='flag' 
+                title="Enter a flag here to have it scored."
+                required='required' placeholder='Flag'
+                autocomplete='off' />
 
-        <button type='submit'>Score</button>
-    </form>
-</section>
+            <button type='submit'>Score</button>
+        </form>
+    </section>
+</div>
 {% endblock %}
