@@ -13,4 +13,6 @@ Base.query = conn.query_property()
 
 def init_db():
     import ctfengine.models
+    import ctfengine.crack.models
+    import ctfengine.pwn.models
     Base.metadata.create_all(bind=engine)

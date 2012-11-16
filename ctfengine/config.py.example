@@ -2,3 +2,4 @@ DATABASE = 'sqlite:///ctfengine.db'
 DEBUG = False
 SECRET_KEY = ""
 SALT = ""
+ENCRYPT_KEYFILE = ""
