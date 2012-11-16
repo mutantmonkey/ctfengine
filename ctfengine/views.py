@@ -87,6 +87,13 @@ def submit_password():
         return make_error(request, "The password hash you entered was not "\
                 "found in the database. Check the format of your submission.")
 
+    # verify that the password is correct
+    if ctfengine.crack.lib.hashpw(password.algo, entered_pw[1]) !=\
+            password.password:
+        return make_error(request, "The plaintext you entered does not "\
+                "correspond with the hashed password. Double check that you "\
+                "entered it correctly.")
+
     # search for handle
     handle = models.Handle.get(entered_handle)
     if not handle:
@@ -100,12 +107,6 @@ def submit_password():
                     first()
     if existing_entry:
         return make_error(request, "You may not resubmit cracked passwords.")
-
-    # verify that the password is correct
-    if ctfengine.crack.lib.hashpw(password.algo, entered_pw[1]) != password.password:
-        return make_error(request, "The plaintext you entered does not "\
-                "correspond with the hashed password. Double check that you "\
-                "entered it correctly.")
 
     # update points for user
     handle.score += password.points
