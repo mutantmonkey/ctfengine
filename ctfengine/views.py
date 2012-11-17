@@ -133,7 +133,8 @@ def dashboard():
     total_points += database.conn.query(
             ctfengine.crack.models.Password.total_points()).first()[0] or 0
 
-    machines = database.conn.query(ctfengine.pwn.models.Machine).all()
+    machines = database.conn.query(ctfengine.pwn.models.Machine).\
+            order_by(ctfengine.pwn.models.Machine.hostname)
 
     if request.wants_json():
         return jsonify({
