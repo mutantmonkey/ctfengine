@@ -17,6 +17,7 @@ def index():
             ctfengine.pwn.models.Flag.total_points()).first()[0] or 0
     total_points += database.conn.query(
             ctfengine.crack.models.Password.total_points()).first()[0] or 0
+
     if request.wants_json():
         return jsonify({
             'scores': [(x.handle, x.score) for x in scores],
@@ -126,13 +127,23 @@ def submit_password():
 
 @app.route('/dashboard')
 def dashboard():
+    scores = models.Handle.topscores()
+    total_points = database.conn.query(
+            ctfengine.pwn.models.Flag.total_points()).first()[0] or 0
+    total_points += database.conn.query(
+            ctfengine.crack.models.Password.total_points()).first()[0] or 0
+
     machines = database.conn.query(ctfengine.pwn.models.Machine).all()
+
     if request.wants_json():
         return jsonify({
+            'scores': [(x.handle, x.score) for x in scores],
+            'total_points': total_points,
             'machines': [m.serialize() for m in machines],
         })
 
-    return render_template('dashboard.html', machines=machines)
+    return render_template('dashboard.html', scores=scores,
+            total_points=total_points, machines=machines)
 
 
 def make_error(request, msg, code=400):
