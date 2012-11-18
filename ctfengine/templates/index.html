@@ -35,16 +35,16 @@
     </section>
 
     <section id='submitpw'>
-        <h2>Submit a Cracked Password</h2>
+        <h2>Submit Cracked Passwords</h2>
         <form action="{{ url_for('submit_password') }}" method='post'>
             <input type='text' name='handle' id='handle'
                 title="Enter the handle you wish to be identified by on the scoreboard."
                 required='required' placeholder='Handle' />
 
-            <input type='text' name='password' id='password' 
-                title="Enter a cracked password in the format hashed:plaintext here to have it scored."
+            <textarea name='passwords' id='passwords'
+                title="Enter cracked passwords in the format hashed:plaintext here to have them scored."
                 required='required' placeholder='Hashed:Plaintext'
-                autocomplete='off' />
+                rows='3' cols='30'></textarea>
 
             <button type='submit'>Score</button>
         </form>

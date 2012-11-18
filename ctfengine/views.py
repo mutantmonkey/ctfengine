@@ -78,50 +78,56 @@ def submit_flag():
 @app.route('/submitpw', methods=['POST'])
 def submit_password():
     entered_handle = request.form['handle'].strip()
-    entered_pw = request.form['password'].strip().split(':', 1)
-    if len(entered_handle) <= 0 or len(entered_pw) <= 1:
-        return make_error(request, "Please enter a handle and a cracked "\
-                "password in the correct format.")
+    if len(entered_handle) <= 0:
+        return make_error(request, "Please enter a handle.")
 
-    password = ctfengine.crack.models.Password.get(entered_pw[0])
-    if not password:
-        return make_error(request, "The password hash you entered was not "\
-                "found in the database. Check the format of your submission.")
+    entered_pws = request.form['passwords'].strip().splitlines()
+    for entered_pw in entered_pws:
+        entered_pw = entered_pw.split(':', 1)
+        if len(entered_pw) <= 1:
+            return make_error(request, "Cracked passwords must be in the "\
+                    "hashed:plaintext format.")
 
-    # verify that the password is correct
-    if ctfengine.crack.lib.hashpw(password.algo, entered_pw[1]) !=\
-            password.password:
-        return make_error(request, "The plaintext you entered does not "\
-                "correspond with the hashed password. Double check that you "\
-                "entered it correctly.")
+        password = ctfengine.crack.models.Password.get(entered_pw[0])
+        if not password:
+            return make_error(request, "A password hash you entered was "\
+                    "not found in the database.")
 
-    # search for handle
-    handle = models.Handle.get(entered_handle)
-    if not handle:
-        handle = models.Handle(entered_handle, 0)
-        database.conn.add(handle)
-        database.conn.commit()
+        # verify that the password is correct
+        if ctfengine.crack.lib.hashpw(password.algo, entered_pw[1]) !=\
+                password.password:
+            return make_error(request, "The plaintext you entered does not "\
+                    "correspond with the hashed password. Double check that "\
+                    "you entered it correctly.")
 
-    existing_entry = ctfengine.crack.models.PasswordEntry.query.filter(
-            ctfengine.crack.models.PasswordEntry.handle == handle.id,
-            ctfengine.crack.models.PasswordEntry.password == password.id).\
-                    first()
-    if existing_entry:
-        return make_error(request, "You may not resubmit cracked passwords.")
+        # search for handle
+        handle = models.Handle.get(entered_handle)
+        if not handle:
+            handle = models.Handle(entered_handle, 0)
+            database.conn.add(handle)
+            database.conn.commit()
 
-    # update points for user
-    handle.score += password.points
-    database.conn.commit()
+        existing_entry = ctfengine.crack.models.PasswordEntry.query.filter(
+                ctfengine.crack.models.PasswordEntry.handle == handle.id,
+                ctfengine.crack.models.PasswordEntry.password == password.id).\
+                        first()
+        if existing_entry:
+            return make_error(request, "You may not resubmit cracked "\
+                    "passwords.")
 
-    # log password submission
-    entry = ctfengine.crack.models.PasswordEntry(handle.id, password.id,
-            entered_pw[1], request.remote_addr, request.user_agent.string)
-    database.conn.add(entry)
+        # update points for user
+        handle.score += password.points
+
+        # log password submission
+        entry = ctfengine.crack.models.PasswordEntry(handle.id, password.id,
+                entered_pw[1], request.remote_addr, request.user_agent.string)
+        database.conn.add(entry)
+
     database.conn.commit()
 
     if request.wants_json():
         return jsonify(entry.serialize())
-    flash("Cracked password scored.")
+    flash("Cracked passwords scored.")
     return redirect(url_for('index'))
 
 
