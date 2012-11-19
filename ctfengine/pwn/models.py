@@ -24,14 +24,17 @@ class FlagEntry(ctfengine.database.Base):
 
     def __repr__(self):
         return '<FlagEntry: {0:d}: {1}: {2}>'.format(self.handle,
-                self.flag.name, self.datetime)
+                self.flag, self.datetime)
 
-    def serialize(self):
-        return {
+    def serialize(self, flag=None):
+        data = {
             'handle': self.handle,
-            'flag_name': self.flag.name,
+            'flag': self.flag,
             'datetime': str(self.datetime),
         }
+        if flag:
+            data.update(flag.serialize())
+        return data
 
 
 class Flag(ctfengine.database.Base):
@@ -66,7 +69,6 @@ class Flag(ctfengine.database.Base):
     def serialize(self):
         return {
             'name': self.name,
-            'flag': self.flag,
             'points': self.points,
         }
 

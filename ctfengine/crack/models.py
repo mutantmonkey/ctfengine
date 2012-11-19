@@ -66,11 +66,14 @@ class PasswordEntry(ctfengine.database.Base):
 
     def __repr__(self):
         return '<PasswordEntry: {0:d}: {1}: {2}>'.format(self.handle,
-                self.password.password, self.datetime)
+                self.password, self.datetime)
 
-    def serialize(self):
-        return {
+    def serialize(self, pw=None):
+        data = {
             'handle': self.handle,
             'password': self.password,
             'datetime': str(self.datetime),
         }
+        if pw:
+            data.update(pw.serialize())
+        return data

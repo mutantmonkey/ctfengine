@@ -7,7 +7,9 @@
         <table class='scores'>
         {% for handle in scores %}
             <tr>
-                <td>{{ handle.handle }}</td>
+                <td>
+                    <a href="{{ url_for('score_breakdown', handle_id=handle.id) }}">{{ handle.handle }}</a>
+                </td>
                 <td>{{ handle.score }}</td>
             </tr>
         {% endfor %}

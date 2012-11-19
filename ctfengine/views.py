@@ -157,6 +157,44 @@ def dashboard():
             total_points=total_points, machines=machines)
 
 
+@app.route('/breakdown/<int:handle_id>')
+def score_breakdown(handle_id):
+    handle = database.conn.query(models.Handle).get(handle_id)
+
+    entries = database.conn.query(ctfengine.pwn.models.FlagEntry,
+            ctfengine.pwn.models.Flag).\
+            filter(ctfengine.pwn.models.FlagEntry.handle == handle_id).all()
+    flags = []
+    score_flags = 0
+    for entry in entries:
+        score_flags += entry[1].points
+        flags.append(entry[0].serialize(entry[1]))
+
+    entries = database.conn.query(ctfengine.crack.models.PasswordEntry,
+            ctfengine.crack.models.Password).\
+            filter(ctfengine.crack.models.PasswordEntry.handle == handle_id).\
+            all()
+    passwords = []
+    score_passwords = 0
+    for entry in entries:
+        score_passwords += entry[1].points
+        passwords.append(entry[0].serialize(entry[1]))
+
+    if request.wants_json():
+        return jsonify({
+            'handle': handle.serialize(),
+            'flags': flags,
+            'passwords': passwords,
+            'score_flags': score_flags,
+            'score_passwords': score_passwords,
+        })
+
+    return render_template('breakdown.html', handle=handle, flags=flags,
+            passwords=passwords, score_flags=score_flags,
+            score_passwords=score_passwords)
+
+
+
 def make_error(request, msg, code=400):
     if request.wants_json():
         response = jsonify({'message': msg})

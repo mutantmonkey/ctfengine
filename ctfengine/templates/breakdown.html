@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Score Breakdown for {{ handle.handle }}</h2>
+
+<section>
+    <h3>Flags</h3>
+
+    <table class='scores breakdown'>
+        <tr>
+            <th>Date and Time</th>
+            <th>Name</th>
+            <th>Points</th>
+        </tr>
+    {% for flag in flags %}
+        <tr>
+            <td>{{ flag.datetime }}</td>
+            <td>{{ flag.name }}</td>
+            <td>{{ flag.points }}</td>
+        </tr>
+    {% endfor %}
+    </table>
+    <div class='total_points'>
+        Score from flags: {{ score_flags }}
+    </div>
+</section>
+
+<section>
+    <h3>Passwords</h3>
+
+    <table class='scores breakdown'>
+        <tr>
+            <th>Date and Time</th>
+            <th>Algorithm</th>
+            <th>Hashed Password</th>
+            <th>Points</th>
+        </tr>
+    {% for password in passwords %}
+        <tr>
+            <td>{{ password.datetime }}</td>
+            <td>{{ password.algo }}</td>
+            <td class='truncate'>{{ password.password }}</td>
+            <td>{{ password.points }}</td>
+        </tr>
+    {% endfor %}
+    </table>
+    <div class='total_points'>
+        Score from passwords: {{ score_passwords }}
+    </div>
+</section>
+{% endblock %}
