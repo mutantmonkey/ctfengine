@@ -24,7 +24,7 @@ def index():
 
     if request.wants_json():
         return jsonify({
-            'scores': [(x.handle, x.score) for x in scores],
+            'scores': [(x.id, x.handle, x.score) for x in scores],
             'total_points': total_points,
         })
 
@@ -71,9 +71,8 @@ def submit_flag():
 
     database.conn.commit()
 
-    sse.send("score: flag: {handle}: {flag_name}: {flag_points}".format(\
-            handle=handle.handle, flag_name=flag.name,
-            flag_points=flag.points))
+    sse.send("score: {handle_id}: flag".format(\
+            handle_id=handle.id))
 
     if request.wants_json():
         return jsonify(entry.serialize())
@@ -134,8 +133,8 @@ def submit_password():
     database.conn.commit()
 
     if counts['good'] > 0:
-        sse.send("score: password: {handle}".format(\
-                handle=handle.handle))
+        sse.send("score: {handle_id:d}: password".format(\
+                handle_id=handle.id))
 
     if request.wants_json():
         return jsonify({'status': counts})

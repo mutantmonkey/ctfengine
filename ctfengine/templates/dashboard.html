@@ -5,7 +5,7 @@
     <section>
         <h2>Scores</h2>
 
-        <table class='scores'>
+        <table class='scores' id='scoreboard'>
         {% for handle in scores %}
             <tr>
                 <td>
@@ -16,7 +16,7 @@
         {% endfor %}
         </table>
 
-        <div class='total_points'>
+        <div class='total_points' id='scoreboard_total'>
             Total points: {{ total_points }}
         </div>
     </section>
@@ -34,4 +34,11 @@
         </table>
     </section>
 </div>
+
+<script type="text/javascript" src="{{ url_for('static', filename='js/scoreboard.js') }}"></script>
+<script type="text/javascript">
+$(function(){
+    liveScoreboard("{{ url_for('livestream') }}", "{{ url_for('index') }}", "../breakdown/");
+});
+</script>
 {% endblock %}
