@@ -1,6 +1,6 @@
 import hashlib
 from flask import abort, flash, jsonify, render_template, request, redirect, \
-        url_for
+        url_for, Response
 
 from ctfengine import app
 from ctfengine import database
@@ -9,9 +9,12 @@ from ctfengine import models
 from ctfengine.models import Handle
 from ctfengine.crack.models import Password, PasswordEntry
 from ctfengine.pwn.models import Flag, FlagEntry, Machine
+from ctfengine import sse
 import ctfengine.crack.lib
 
+
 @app.route('/')
+@app.route('/scores')
 def index():
     scores = Handle.topscores()
     total_points = database.conn.query(
@@ -45,6 +48,7 @@ def submit_flag():
     if not handle:
         handle = Handle(entered_handle, 0)
         database.conn.add(handle)
+        database.conn.commit()
 
     existing_entry = FlagEntry.query.filter(
             FlagEntry.handle == handle.id,
@@ -67,6 +71,10 @@ def submit_flag():
 
     database.conn.commit()
 
+    sse.send("score: flag: {handle}: {flag_name}: {flag_points}".format(\
+            handle=handle.handle, flag_name=flag.name,
+            flag_points=flag.points))
+
     if request.wants_json():
         return jsonify(entry.serialize())
     flash("Flag scored.")
@@ -78,6 +86,8 @@ def submit_password():
     entered_handle = request.form['handle'].strip()
     if len(entered_handle) <= 0:
         return make_error(request, "Please enter a handle.")
+
+    handle = Handle.get(entered_handle)
 
     counts = {'good': 0, 'notfound': 0, 'bad': 0, 'duplicate': 0}
     entered_pws = request.form['passwords'].strip().splitlines()
@@ -99,10 +109,10 @@ def submit_password():
             continue
 
         # search for handle
-        handle = Handle.get(entered_handle)
         if not handle:
             handle = Handle(entered_handle, 0)
             database.conn.add(handle)
+            database.conn.commit()
 
         existing_entry = PasswordEntry.query.filter(
                 PasswordEntry.handle == handle.id,
@@ -123,8 +133,12 @@ def submit_password():
 
     database.conn.commit()
 
+    if counts['good'] > 0:
+        sse.send("score: password: {handle}".format(\
+                handle=handle.handle))
+
     if request.wants_json():
-        return jsonify(entry.serialize())
+        return jsonify({'status': counts})
     flash("{good} passwords accepted, {notfound} not found in database, "\
             "{duplicate} passwords already scored, and {bad} incorrect "\
             "plaintexts.".format(**counts))
@@ -185,6 +199,12 @@ def score_breakdown(handle_id):
     return render_template('breakdown.html', handle=handle, flags=flags,
             passwords=passwords, score_flags=score_flags,
             score_passwords=score_passwords)
+
+
+@app.route('/live')
+def livestream():
+    return Response(sse.event_stream(),
+            mimetype="text/event-stream")
 
 
 def make_error(request, msg, code=400):

@@ -3,3 +3,4 @@ DEBUG = False
 SECRET_KEY = ""
 SALT = ""
 ENCRYPT_KEYFILE = ""
+REDIS_CHANNEL = "ctfengine"
