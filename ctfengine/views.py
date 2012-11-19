@@ -81,6 +81,7 @@ def submit_password():
     if len(entered_handle) <= 0:
         return make_error(request, "Please enter a handle.")
 
+    counts = {'good': 0, 'notfound': 0, 'bad': 0, 'duplicate': 0}
     entered_pws = request.form['passwords'].strip().splitlines()
     for entered_pw in entered_pws:
         entered_pw = entered_pw.split(':', 1)
@@ -90,15 +91,14 @@ def submit_password():
 
         password = ctfengine.crack.models.Password.get(entered_pw[0])
         if not password:
-            return make_error(request, "A password hash you entered was "\
-                    "not found in the database.")
+            counts['notfound'] += 1
+            continue
 
         # verify that the password is correct
         if ctfengine.crack.lib.hashpw(password.algo, entered_pw[1]) !=\
                 password.password:
-            return make_error(request, "The plaintext you entered does not "\
-                    "correspond with the hashed password. Double check that "\
-                    "you entered it correctly.")
+            counts['bad'] += 1
+            continue
 
         # search for handle
         handle = models.Handle.get(entered_handle)
@@ -112,8 +112,10 @@ def submit_password():
                 ctfengine.crack.models.PasswordEntry.password == password.id).\
                         first()
         if existing_entry:
-            return make_error(request, "You may not resubmit cracked "\
-                    "passwords.")
+            counts['duplicate'] += 1
+            continue
+
+        counts['good'] += 1
 
         # update points for user
         handle.score += password.points
@@ -127,7 +129,9 @@ def submit_password():
 
     if request.wants_json():
         return jsonify(entry.serialize())
-    flash("Cracked passwords scored.")
+    flash("{good} passwords accepted, {notfound} not found in database, "\
+            "{duplicate} passwords already scored, and {bad} incorrect "\
+            "plaintexts.".format(**counts))
     return redirect(url_for('index'))
 
 
