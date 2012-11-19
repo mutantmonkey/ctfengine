@@ -45,7 +45,6 @@ def submit_flag():
     if not handle:
         handle = Handle(entered_handle, 0)
         database.conn.add(handle)
-        database.conn.commit()
 
     existing_entry = FlagEntry.query.filter(
             FlagEntry.handle == handle.id,
@@ -55,19 +54,18 @@ def submit_flag():
 
     # update points for user
     handle.score += flag.points
-    database.conn.commit()
 
     # log flag submission
     entry = FlagEntry(handle.id, flag.id,
             request.remote_addr, request.user_agent.string)
     database.conn.add(entry)
-    database.conn.commit()
 
     # mark machine as dirty if necessary
     if flag.machine:
         machine = database.conn.query(Machine).get(flag.machine)
         machine.dirty = True
-        database.conn.commit()
+
+    database.conn.commit()
 
     if request.wants_json():
         return jsonify(entry.serialize())
@@ -105,7 +103,6 @@ def submit_password():
         if not handle:
             handle = Handle(entered_handle, 0)
             database.conn.add(handle)
-            database.conn.commit()
 
         existing_entry = PasswordEntry.query.filter(
                 PasswordEntry.handle == handle.id,
