@@ -6,17 +6,18 @@ from ctfengine import app
 from ctfengine import database
 from ctfengine import lib
 from ctfengine import models
+from ctfengine.models import Handle
+from ctfengine.crack.models import Password, PasswordEntry
+from ctfengine.pwn.models import Flag, FlagEntry, Machine
 import ctfengine.crack.lib
-import ctfengine.crack.models
-import ctfengine.pwn.models
 
 @app.route('/')
 def index():
-    scores = models.Handle.topscores()
+    scores = Handle.topscores()
     total_points = database.conn.query(
-            ctfengine.pwn.models.Flag.total_points()).first()[0] or 0
+            Flag.total_points()).first()[0] or 0
     total_points += database.conn.query(
-            ctfengine.crack.models.Password.total_points()).first()[0] or 0
+            Password.total_points()).first()[0] or 0
 
     if request.wants_json():
         return jsonify({
@@ -35,20 +36,20 @@ def submit_flag():
     if len(entered_handle) <= 0 or len(entered_flag) <= 0:
         return make_error(request, "Please enter a handle and a flag.")
 
-    flag = ctfengine.pwn.models.Flag.get(entered_flag)
+    flag = Flag.get(entered_flag)
     if not flag:
         return make_error(request, "That is not a valid flag.")
 
     # search for handle
-    handle = models.Handle.get(entered_handle)
+    handle = Handle.get(entered_handle)
     if not handle:
-        handle = models.Handle(entered_handle, 0)
+        handle = Handle(entered_handle, 0)
         database.conn.add(handle)
         database.conn.commit()
 
-    existing_entry = ctfengine.pwn.models.FlagEntry.query.filter(
-            ctfengine.pwn.models.FlagEntry.handle == handle.id,
-            ctfengine.pwn.models.FlagEntry.flag == flag.id).first()
+    existing_entry = FlagEntry.query.filter(
+            FlagEntry.handle == handle.id,
+            FlagEntry.flag == flag.id).first()
     if existing_entry:
         return make_error(request, "You may not resubmit flags.")
 
@@ -57,15 +58,14 @@ def submit_flag():
     database.conn.commit()
 
     # log flag submission
-    entry = ctfengine.pwn.models.FlagEntry(handle.id, flag.id,
+    entry = FlagEntry(handle.id, flag.id,
             request.remote_addr, request.user_agent.string)
     database.conn.add(entry)
     database.conn.commit()
 
     # mark machine as dirty if necessary
     if flag.machine:
-        machine = database.conn.query(
-                ctfengine.pwn.models.Machine).get(flag.machine)
+        machine = database.conn.query(Machine).get(flag.machine)
         machine.dirty = True
         database.conn.commit()
 
@@ -89,7 +89,7 @@ def submit_password():
             return make_error(request, "Cracked passwords must be in the "\
                     "hashed:plaintext format.")
 
-        password = ctfengine.crack.models.Password.get(entered_pw[0])
+        password = Password.get(entered_pw[0])
         if not password:
             counts['notfound'] += 1
             continue
@@ -101,16 +101,15 @@ def submit_password():
             continue
 
         # search for handle
-        handle = models.Handle.get(entered_handle)
+        handle = Handle.get(entered_handle)
         if not handle:
-            handle = models.Handle(entered_handle, 0)
+            handle = Handle(entered_handle, 0)
             database.conn.add(handle)
             database.conn.commit()
 
-        existing_entry = ctfengine.crack.models.PasswordEntry.query.filter(
-                ctfengine.crack.models.PasswordEntry.handle == handle.id,
-                ctfengine.crack.models.PasswordEntry.password == password.id).\
-                        first()
+        existing_entry = PasswordEntry.query.filter(
+                PasswordEntry.handle == handle.id,
+                PasswordEntry.password == password.id).first()
         if existing_entry:
             counts['duplicate'] += 1
             continue
@@ -121,7 +120,7 @@ def submit_password():
         handle.score += password.points
 
         # log password submission
-        entry = ctfengine.crack.models.PasswordEntry(handle.id, password.id,
+        entry = PasswordEntry(handle.id, password.id,
                 entered_pw[1], request.remote_addr, request.user_agent.string)
         database.conn.add(entry)
 
@@ -137,14 +136,12 @@ def submit_password():
 
 @app.route('/dashboard')
 def dashboard():
-    scores = models.Handle.topscores()
+    scores = Handle.topscores()
     total_points = database.conn.query(
-            ctfengine.pwn.models.Flag.total_points()).first()[0] or 0
+            Flag.total_points()).first()[0] or 0
     total_points += database.conn.query(
-            ctfengine.crack.models.Password.total_points()).first()[0] or 0
-
-    machines = database.conn.query(ctfengine.pwn.models.Machine).\
-            order_by(ctfengine.pwn.models.Machine.hostname)
+            Password.total_points()).first()[0] or 0
+    machines = database.conn.query(Machine).order_by(Machine.hostname)
 
     if request.wants_json():
         return jsonify({
@@ -159,21 +156,20 @@ def dashboard():
 
 @app.route('/breakdown/<int:handle_id>')
 def score_breakdown(handle_id):
-    handle = database.conn.query(models.Handle).get(handle_id)
+    handle = database.conn.query(Handle).get(handle_id)
 
-    entries = database.conn.query(ctfengine.pwn.models.FlagEntry,
-            ctfengine.pwn.models.Flag).\
-            filter(ctfengine.pwn.models.FlagEntry.handle == handle_id).all()
+    entries = database.conn.query(FlagEntry, Flag).\
+            filter(FlagEntry.handle == handle_id).\
+            join(Flag, FlagEntry.flag == Flag.id).all()
     flags = []
     score_flags = 0
     for entry in entries:
         score_flags += entry[1].points
         flags.append(entry[0].serialize(entry[1]))
 
-    entries = database.conn.query(ctfengine.crack.models.PasswordEntry,
-            ctfengine.crack.models.Password).\
-            filter(ctfengine.crack.models.PasswordEntry.handle == handle_id).\
-            all()
+    entries = database.conn.query(PasswordEntry, Password).\
+            filter(PasswordEntry.handle == handle_id).\
+            join(Password, PasswordEntry.password == Password.id).all()
     passwords = []
     score_passwords = 0
     for entry in entries:
@@ -192,7 +188,6 @@ def score_breakdown(handle_id):
     return render_template('breakdown.html', handle=handle, flags=flags,
             passwords=passwords, score_flags=score_flags,
             score_passwords=score_passwords)
-
 
 
 def make_error(request, msg, code=400):
