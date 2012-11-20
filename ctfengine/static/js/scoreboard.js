@@ -14,8 +14,6 @@ function loadScores(scoreurl, breakdownurl, highlights) {
         }
         scores.sort(function(a, b){return a[2] < b[2]});
 
-        JSON.stringify(scores);
-
         $('#scoreboard tr').remove();
         for(i in scores)
         {
@@ -45,12 +43,58 @@ function loadScores(scoreurl, breakdownurl, highlights) {
     });
 }
 
+function loadMachines(scoreurl) {
+    $.ajax({
+        'url': scoreurl,
+        'dataType': 'json',
+    }).done(function(data){
+        var machines = data['machines'];
+
+        $('#machine_list tr').remove();
+        for(i in machines)
+        {
+            tr = document.createElement('tr');
+
+            td = document.createElement('td');
+            $(td).text(machines[i]['hostname']);
+            $(tr).append(td);
+
+            td = document.createElement('td');
+
+            if(machines[i]['dirty'] == true) {
+                $(tr).addClass('dirty');
+                $(td).text("Needs reset");
+            }
+            else {
+                $(td).text("Clean");
+            }
+            $(tr).append(td);
+
+            $('#machine_list').append(tr);
+        }
+    });
+}
+
 function liveScoreboard(liveurl, scoreurl, breakdownurl) {
     var source = new EventSource(liveurl);
     source.onmessage = function(ev) {
         msg = ev.data.split(': ');
         if(msg[0] == 'score') {
             loadScores(scoreurl, breakdownurl, [msg[1]]);
+        }
+    };
+}
+
+function liveDashboard(liveurl, scoreurl, breakdownurl) {
+    var source = new EventSource(liveurl);
+    source.onmessage = function(ev) {
+        msg = ev.data.split(': ');
+        if(msg[0] == 'score') {
+            loadScores(scoreurl, breakdownurl, [msg[1]]);
+        }
+
+        if(msg[2] == 'flag') {
+            loadMachines(scoreurl);
         }
     };
 }

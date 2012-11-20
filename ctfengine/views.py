@@ -155,7 +155,7 @@ def dashboard():
 
     if request.wants_json():
         return jsonify({
-            'scores': [(x.handle, x.score) for x in scores],
+            'scores': [(x.id, x.handle, x.score) for x in scores],
             'total_points': total_points,
             'machines': [m.serialize() for m in machines],
         })

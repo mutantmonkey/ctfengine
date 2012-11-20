@@ -24,7 +24,7 @@
     <section>
         <h2>Machines</h2>
 
-        <table class='machines'>
+        <table class='machines' id='machine_list'>
         {% for machine in machines %}
             <tr {% if machine.dirty %}class='dirty'{%endif%}>
                 <td>{{ machine.hostname }}</td>
@@ -38,7 +38,7 @@
 <script type="text/javascript" src="{{ url_for('static', filename='js/scoreboard.js') }}"></script>
 <script type="text/javascript">
 $(function(){
-    liveScoreboard("{{ url_for('livestream') }}", "{{ url_for('index') }}", "../breakdown/");
+    liveDashboard("{{ url_for('livestream') }}", "{{ url_for('dashboard') }}", "../breakdown/");
 });
 </script>
 {% endblock %}
