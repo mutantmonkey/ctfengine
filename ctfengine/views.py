@@ -202,8 +202,9 @@ def score_breakdown(handle_id):
 
 @app.route('/live')
 def livestream():
-    return Response(sse.event_stream(),
-            mimetype="text/event-stream")
+    response = Response(sse.event_stream(), mimetype="text/event-stream")
+    response.headers['X-Accel-Buffering'] = "no"
+    return response
 
 
 def make_error(request, msg, code=400):
