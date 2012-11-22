@@ -11,12 +11,8 @@ def event_stream():
     pubsub = red.pubsub()
     pubsub.subscribe(config.REDIS_CHANNEL)
     for msg in pubsub.listen():
-        if msg['type'] != 'message':
-            continue
-        data = msg['data'].split(': ', 1)
-        yield 'event: {event}\ndata: {data}\n\n'.format(event=data[0],
-                data=data[1])
+        yield 'data: {0}\n\n'.format(msg['data'])
 
 
-def send(event, data):
-    red.publish(config.REDIS_CHANNEL, event + ': ' + data)
+def send(msg):
+    red.publish(config.REDIS_CHANNEL, msg)
