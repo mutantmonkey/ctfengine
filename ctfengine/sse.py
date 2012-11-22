@@ -13,8 +13,6 @@ def event_stream():
     for msg in pubsub.listen():
         if msg['type'] != 'message':
             continue
-
-        gevent.sleep(0.1)
         data = msg['data'].split(': ', 1)
         yield 'event: {event}\ndata: {data}\n\n'.format(event=data[0],
                 data=data[1])
