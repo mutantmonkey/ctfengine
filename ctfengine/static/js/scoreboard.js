@@ -1,3 +1,5 @@
+var scoreSnd = new Audio("static/sounds/score.wav");
+
 function loadScores(scoreurl, breakdownurl, highlights) {
     $.ajax({
         'url': scoreurl,
@@ -80,6 +82,7 @@ function liveScoreboard(liveurl, scoreurl, breakdownurl) {
     source.onmessage = function(ev) {
         msg = ev.data.split(': ');
         if(msg[0] == 'score') {
+            scoreSnd.play();
             loadScores(scoreurl, breakdownurl, [msg[1]]);
         }
     };
@@ -90,6 +93,7 @@ function liveDashboard(liveurl, scoreurl, breakdownurl) {
     source.onmessage = function(ev) {
         msg = ev.data.split(': ');
         if(msg[0] == 'score') {
+            scoreSnd.play();
             loadScores(scoreurl, breakdownurl, [msg[1]]);
         }
 
