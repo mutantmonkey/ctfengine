@@ -79,8 +79,8 @@ function liveScoreboard(liveurl, scoreurl, breakdownurl) {
     var source = new EventSource(liveurl);
     source.onmessage = function(ev) {
         msg = ev.data.split(': ');
-        if(msg[0] == 'score') {
-            loadScores(scoreurl, breakdownurl, [msg[1]]);
+        if(ev.event == 'score') {
+            loadScores(scoreurl, breakdownurl, [msg[0]]);
         }
     };
 }
@@ -89,11 +89,11 @@ function liveDashboard(liveurl, scoreurl, breakdownurl) {
     var source = new EventSource(liveurl);
     source.onmessage = function(ev) {
         msg = ev.data.split(': ');
-        if(msg[0] == 'score') {
-            loadScores(scoreurl, breakdownurl, [msg[1]]);
+        if(ev.event == 'score') {
+            loadScores(scoreurl, breakdownurl, [msg[0]]);
         }
 
-        if(msg[2] == 'flag') {
+        if(ev.event == 'flag') {
             loadMachines(scoreurl);
         }
     };

@@ -72,7 +72,7 @@ def submit_flag():
 
     database.conn.commit()
 
-    sse.send("score: {handle_id}: flag".format(\
+    sse.send("score", "{handle_id}: flag".format(\
             handle_id=handle.id))
 
     if request.wants_json():
@@ -134,7 +134,7 @@ def submit_password():
     database.conn.commit()
 
     if counts['good'] > 0:
-        sse.send("score: {handle_id:d}: password".format(\
+        sse.send("score", "{handle_id:d}: password".format(\
                 handle_id=handle.id))
 
     if request.wants_json():
