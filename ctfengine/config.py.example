@@ -1,3 +1,4 @@
+CTF_NAME = "ctfengine"
 DATABASE = 'sqlite:///ctfengine.db'
 DEBUG = False
 SECRET_KEY = ""
