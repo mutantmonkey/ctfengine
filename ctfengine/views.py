@@ -3,7 +3,6 @@ from flask import abort, flash, jsonify, render_template, request, redirect, \
         url_for, Response
 
 from ctfengine import app
-from ctfengine import config
 from ctfengine import database
 from ctfengine import lib
 from ctfengine import models
@@ -29,7 +28,7 @@ def index():
             'total_points': total_points,
         })
 
-    return render_template('index.html', CTF_NAME=config.CTF_NAME,
+    return render_template('index.html', CTF_NAME=app.config['CTF_NAME'],
             scores=scores, total_points=total_points)
 
 
@@ -161,7 +160,7 @@ def dashboard():
             'machines': [m.serialize() for m in machines],
         })
 
-    return render_template('dashboard.html', CTF_NAME=config.CTF_NAME,
+    return render_template('dashboard.html', CTF_NAME=app.config['CTF_NAME'],
             scores=scores, total_points=total_points, machines=machines)
 
 
@@ -198,7 +197,7 @@ def score_breakdown(handle_id):
             'score_passwords': score_passwords,
         })
 
-    return render_template('breakdown.html', CTF_NAME=config.CTF_NAME,
+    return render_template('breakdown.html', CTF_NAME=app.config['CTF_NAME'],
             handle=handle, flags=flags, passwords=passwords,
             score_flags=score_flags, score_passwords=score_passwords)
 
