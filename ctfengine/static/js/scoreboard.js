@@ -83,6 +83,8 @@ function liveScoreboard(liveurl, scoreurl, breakdownurl) {
         msg = ev.data.split(': ');
         if(msg[0] == 'score') {
             scoreSnd.play();
+            scoreSnd.currentTime = 0;
+
             loadScores(scoreurl, breakdownurl, [msg[1]]);
         }
     };
@@ -94,6 +96,8 @@ function liveDashboard(liveurl, scoreurl, breakdownurl) {
         msg = ev.data.split(': ');
         if(msg[0] == 'score') {
             scoreSnd.play();
+            scoreSnd.currentTime = 0;
+
             loadScores(scoreurl, breakdownurl, [msg[1]]);
         }
 
