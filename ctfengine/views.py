@@ -170,7 +170,8 @@ def score_breakdown(handle_id):
 
     entries = database.conn.query(FlagEntry, Flag).\
             filter(FlagEntry.handle == handle_id).\
-            join(Flag, FlagEntry.flag == Flag.id).all()
+            join(Flag, FlagEntry.flag == Flag.id).\
+            order_by(FlagEntry.datetime).all()
     flags = []
     score_flags = 0
     for entry in entries:
@@ -179,7 +180,8 @@ def score_breakdown(handle_id):
 
     entries = database.conn.query(PasswordEntry, Password).\
             filter(PasswordEntry.handle == handle_id).\
-            join(Password, PasswordEntry.password == Password.id).all()
+            join(Password, PasswordEntry.password == Password.id).\
+            order_by(PasswordEntry.datetime).all()
     passwords = []
     score_passwords = 0
     for entry in entries:
