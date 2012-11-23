@@ -4,7 +4,7 @@ import hashlib
 
 def __hashlib_hash(algo, password):
     h = hashlib.new(algo)
-    h.update(password)
+    h.update(password.encode('utf-8'))
     return h.hexdigest()
 
 
