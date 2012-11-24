@@ -129,8 +129,7 @@ def submit_password():
         entry = PasswordEntry(handle.id, password.id,
                 entered_pw[1], request.remote_addr, request.user_agent.string)
         database.conn.add(entry)
-
-    database.conn.commit()
+        database.conn.commit()
 
     if counts['good'] > 0:
         sse.send("score: {handle_id:d}: password".format(\
