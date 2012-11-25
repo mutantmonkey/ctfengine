@@ -5,5 +5,5 @@ SECRET_KEY = ""
 SALT = ""
 ENCRYPT_KEYFILE = ""
 REDIS_CHANNEL = "ctfengine"
-ADMINS = ['mutantmonkey@vtcsec.ru']
-MAIL_FROM = 'noreply@vtcsec.ru'
+ADMINS = ['admin@example.com']
+MAIL_FROM = 'noreply@example.com'
