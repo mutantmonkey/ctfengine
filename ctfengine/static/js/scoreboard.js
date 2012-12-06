@@ -1,5 +1,18 @@
 var scoreSnd = new Audio("static/sounds/score.wav");
 
+function flash(msg) {
+    $('#flash').text(msg);
+    $('#flash').fadeIn('slow');
+    $('#flash').click(function(){
+        $('#flash').fadeOut('slow');
+    });
+
+    window.setTimeout(function(){
+        $('#flash').fadeOut('slow');
+        $('#flash').unbind();
+    }, 5000);
+}
+
 function loadScores(scoreurl, breakdownurl, highlights) {
     $.ajax({
         'url': scoreurl,
@@ -87,6 +100,9 @@ function liveScoreboard(liveurl, scoreurl, breakdownurl) {
 
             loadScores(scoreurl, breakdownurl, [msg[1]]);
         }
+        else if(msg[0] == 'flash') {
+            flash(msg[1]);
+        }
     };
 }
 
@@ -99,6 +115,9 @@ function liveDashboard(liveurl, scoreurl, breakdownurl) {
             scoreSnd.currentTime = 0;
 
             loadScores(scoreurl, breakdownurl, [msg[1]]);
+        }
+        else if(msg[0] == 'flash') {
+            flash(msg[1]);
         }
 
         if(msg[2] == 'flag') {
