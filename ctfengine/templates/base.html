@@ -4,6 +4,7 @@
         <meta charset="utf-8" />
         <title>{% block title %}{{ CTF_NAME }}{% endblock %}</title>
         <link rel='stylesheet' type='text/css' href="https://vtcsec.ru/static/css/ru.css" />
+        <link rel='stylesheet' type='text/css' href="http://dev.vtcybersecurity.org/static/css/ru.css" />
         <link rel='stylesheet' type='text/css' href="{{ url_for('static', filename='css/global.css') }}" />
         <script type="text/javascript" src="https://vtcsec.ru/static/js/jquery.js"></script>
     </head>
@@ -28,6 +29,8 @@
 
                 {% block content %}{% endblock %}
             </div>
+
+            <div id='flash' class='message-box'></div>
         </div>
     </body>
 </html>
