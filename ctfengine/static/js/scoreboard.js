@@ -27,7 +27,9 @@ function loadScores(scoreurl, breakdownurl, highlights) {
         {
             scores.push(data['scores'][k]);
         }
-        scores.sort(function(a, b){return a[2] < b[2]});
+        scores.sort(function(a, b){
+            return a[2] < b[2] ? 1 : -1;
+        });
 
         $('#scoreboard tr').remove();
         for(i in scores)
