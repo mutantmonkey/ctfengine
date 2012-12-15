@@ -14,7 +14,7 @@
         </tr>
     {% for flag in flags %}
         <tr>
-            <td>{{ flag.datetime }}</td>
+            <td>{{ flag.datetime|datetime }}</td>
             <td>{{ flag.name }}</td>
             <td>{{ flag.points }}</td>
         </tr>
@@ -31,15 +31,15 @@
     <table class='scores breakdown'>
         <tr>
             <th>Date and Time</th>
-            <th>Algorithm</th>
-            <th>Hashed Password</th>
+            <th class='hidden-phone'>Algorithm</th>
+            <th class='hidden-phone truncate'>Hashed Password</th>
             <th>Points</th>
         </tr>
     {% for password in passwords %}
         <tr>
-            <td>{{ password.datetime }}</td>
-            <td>{{ password.algo }}</td>
-            <td class='truncate'>{{ password.password }}</td>
+            <td>{{ password.datetime|datetime }}</td>
+            <td class='hidden-phone'>{{ password.algo }}</td>
+            <td class='hidden-phone truncate'>{{ password.password }}</td>
             <td>{{ password.points }}</td>
         </tr>
     {% endfor %}

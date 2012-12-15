@@ -6,6 +6,10 @@ app = Flask(__name__)
 app.config.from_object(config)
 app.request_class = lib.Request
 
+def format_datetime(value):
+    return value.strftime("%Y-%m-%d %H:%M:%S %z")
+app.jinja_env.filters['datetime'] = format_datetime
+
 import ctfengine.views
 
 if not app.debug:

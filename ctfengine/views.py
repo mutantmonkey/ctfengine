@@ -188,10 +188,15 @@ def score_breakdown(handle_id):
         passwords.append(entry[0].serialize(entry[1]))
 
     if request.wants_json():
+        def serialize_dates(items):
+            for item in items:
+                item['datetime'] = str(item['datetime'])
+            return items
+
         return jsonify({
             'handle': handle.serialize(),
-            'flags': flags,
-            'passwords': passwords,
+            'flags': serialize_dates(flags),
+            'passwords': serialize_dates(passwords),
             'score_flags': score_flags,
             'score_passwords': score_passwords,
         })

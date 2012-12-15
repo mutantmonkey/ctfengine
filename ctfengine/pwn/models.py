@@ -30,7 +30,7 @@ class FlagEntry(ctfengine.database.Base):
         data = {
             'handle': self.handle,
             'flag': self.flag,
-            'datetime': str(self.datetime),
+            'datetime': self.datetime,
         }
         if flag:
             data.update(flag.serialize())

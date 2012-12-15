@@ -72,7 +72,7 @@ class PasswordEntry(ctfengine.database.Base):
         data = {
             'handle': self.handle,
             'password': self.password,
-            'datetime': str(self.datetime),
+            'datetime': self.datetime,
         }
         if pw:
             data.update(pw.serialize())
