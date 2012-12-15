@@ -166,26 +166,24 @@ def dashboard():
 @app.route('/breakdown/<int:handle_id>')
 def score_breakdown(handle_id):
     handle = database.conn.query(Handle).get(handle_id)
+    if not handle:
+        abort(404)
 
-    entries = database.conn.query(FlagEntry, Flag).\
+    flags = database.conn.query(FlagEntry, Flag).\
             filter(FlagEntry.handle == handle_id).\
             join(Flag, FlagEntry.flag == Flag.id).\
             order_by(FlagEntry.datetime).all()
-    flags = []
     score_flags = 0
-    for entry in entries:
+    for entry in flags:
         score_flags += entry[1].points
-        flags.append(entry[0].serialize(entry[1]))
 
-    entries = database.conn.query(PasswordEntry, Password).\
+    passwords = database.conn.query(PasswordEntry, Password).\
             filter(PasswordEntry.handle == handle_id).\
             join(Password, PasswordEntry.password == Password.id).\
             order_by(PasswordEntry.datetime).all()
-    passwords = []
     score_passwords = 0
-    for entry in entries:
+    for entry in passwords:
         score_passwords += entry[1].points
-        passwords.append(entry[0].serialize(entry[1]))
 
     if request.wants_json():
         def serialize_dates(items):
@@ -193,10 +191,18 @@ def score_breakdown(handle_id):
                 item['datetime'] = str(item['datetime'])
             return items
 
+        flagdata = []
+        for entry in flags:
+            flagdata.append(entry[0].serialize(entry[1]))
+
+        pwdata = []
+        for entry in passwords:
+            pwdata.append(entry[0].serialize(entry[1]))
+
         return jsonify({
             'handle': handle.serialize(),
-            'flags': serialize_dates(flags),
-            'passwords': serialize_dates(passwords),
+            'flags': serialize_dates(flagdata),
+            'passwords': serialize_dates(pwdata),
             'score_flags': score_flags,
             'score_passwords': score_passwords,
         })
@@ -204,6 +210,70 @@ def score_breakdown(handle_id):
     return render_template('breakdown.html', CTF_NAME=app.config['CTF_NAME'],
             handle=handle, flags=flags, passwords=passwords,
             score_flags=score_flags, score_passwords=score_passwords)
+
+
+@app.route('/flag/<int:flag_id>')
+def pwn_submissions(flag_id):
+    flag = database.conn.query(Flag).get(flag_id)
+    if not flag:
+        abort(404)
+
+    submissions = database.conn.query(FlagEntry, Handle).\
+            filter(FlagEntry.flag == flag.id).\
+            join(Handle, Handle.id == FlagEntry.handle).\
+            order_by(FlagEntry.datetime).all()
+
+    if request.wants_json():
+        def serialize_date(item):
+            item['datetime'] = str(item['datetime'])
+            return item
+
+        subdata = []
+        for entry, handle in submissions:
+            subdata.append({
+                'entry': serialize_date(entry.serialize()),
+                'handle': handle.serialize(),
+            })
+
+        return jsonify({
+            'flag': flag.serialize(),
+            'submissions': subdata,
+        })
+
+    return render_template('pwn_submissions.html', CTF_NAME=app.config['CTF_NAME'],
+            flag=flag, submissions=submissions)
+
+
+@app.route('/password/<int:password_id>')
+def crack_submissions(password_id):
+    password = database.conn.query(Password).get(password_id)
+    if not password:
+        abort(404)
+
+    submissions = database.conn.query(PasswordEntry, Handle).\
+            filter(PasswordEntry.password == password.id).\
+            join(Handle, Handle.id == PasswordEntry.handle).\
+            order_by(PasswordEntry.datetime).all()
+
+    if request.wants_json():
+        def serialize_date(item):
+            item['datetime'] = str(item['datetime'])
+            return item
+
+        subdata = []
+        for entry, handle in submissions:
+            subdata.append({
+                'entry': serialize_date(entry.serialize()),
+                'handle': handle.serialize(),
+            })
+
+        return jsonify({
+            'flag': flag.serialize(),
+            'submissions': subdata,
+        })
+
+    return render_template('crack_submissions.html', CTF_NAME=app.config['CTF_NAME'],
+            password=password, submissions=submissions)
 
 
 @app.route('/live')

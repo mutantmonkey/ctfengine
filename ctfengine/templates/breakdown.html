@@ -12,10 +12,10 @@
             <th>Name</th>
             <th>Points</th>
         </tr>
-    {% for flag in flags %}
+    {% for (entry, flag) in flags %}
         <tr>
-            <td>{{ flag.datetime|datetime }}</td>
-            <td>{{ flag.name }}</td>
+            <td>{{ entry.datetime|datetime }}</td>
+            <td><a href="{{ url_for('pwn_submissions', flag_id=flag.id) }}">{{ flag.name }}</a></td>
             <td>{{ flag.points }}</td>
         </tr>
     {% endfor %}
@@ -32,14 +32,14 @@
         <tr>
             <th>Date and Time</th>
             <th class='hidden-phone'>Algorithm</th>
-            <th class='hidden-phone truncate'>Hashed Password</th>
+            <th class='truncate'>Hash</th>
             <th>Points</th>
         </tr>
-    {% for password in passwords %}
+    {% for (entry, password) in passwords %}
         <tr>
-            <td>{{ password.datetime|datetime }}</td>
+            <td>{{ entry.datetime|datetime }}</td>
             <td class='hidden-phone'>{{ password.algo }}</td>
-            <td class='hidden-phone truncate'>{{ password.password }}</td>
+            <td class='truncate'><a href="{{ url_for('crack_submissions', password_id=password.id) }}">{{ password.password }}</a></td>
             <td>{{ password.points }}</td>
         </tr>
     {% endfor %}

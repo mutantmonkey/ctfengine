@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}flag submissions - {{ CTF_NAME }}{% endblock %}
+{% block content %}
+<h2>Flag Submissions for {{ flag.name }}</h2>
+
+<section>
+    <table class='scores breakdown'>
+        <tr>
+            <th>Date and Time</th>
+            <th>Handle</th>
+        </tr>
+    {% for (entry, handle) in submissions %}
+        <tr>
+            <td>{{ entry.datetime|datetime }}</td>
+            <td><a href="{{ url_for('score_breakdown', handle_id=handle.id) }}">{{ handle.handle }}</a></td>
+        </tr>
+    {% endfor %}
+    </table>
+</section>
+{% endblock %}
