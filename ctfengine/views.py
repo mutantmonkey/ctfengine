@@ -13,6 +13,17 @@ from ctfengine import sse
 import ctfengine.crack.lib
 
 
+def serialize_date(item):
+    item['datetime'] = str(item['datetime'])
+    return item
+
+
+def serialize_dates(items):
+    for item in items:
+        item['datetime'] = str(item['datetime'])
+    return items
+
+
 @app.route('/')
 @app.route('/scores')
 def index():
@@ -75,7 +86,7 @@ def submit_flag():
             handle_id=handle.id))
 
     if request.wants_json():
-        return jsonify(entry.serialize())
+        return jsonify(serialize_date(entry.serialize()))
     flash("Flag scored.")
     return redirect(url_for('index'))
 
@@ -186,11 +197,6 @@ def score_breakdown(handle_id):
         score_passwords += entry[1].points
 
     if request.wants_json():
-        def serialize_dates(items):
-            for item in items:
-                item['datetime'] = str(item['datetime'])
-            return items
-
         flagdata = []
         for entry in flags:
             flagdata.append(entry[0].serialize(entry[1]))
@@ -224,10 +230,6 @@ def pwn_submissions(flag_id):
             order_by(FlagEntry.datetime).all()
 
     if request.wants_json():
-        def serialize_date(item):
-            item['datetime'] = str(item['datetime'])
-            return item
-
         subdata = []
         for entry, handle in submissions:
             subdata.append({
