@@ -18,14 +18,9 @@ if not app.debug:
     mail_handler = SMTPHandler('127.0.0.1',
                                app.config['MAIL_FROM'],
                                app.config['ADMINS'], "ctfengine error")
-    mail_handler.setFormatter(logging.Formatter('''
+    mail_handler.setFormatter(logging.Formatter('''\
 Message type:       %(levelname)s
-Location:           %(pathname)s:%(lineno)d
-Module:             %(module)s
-Function:           %(funcName)s
 Time:               %(asctime)s
-
-Message:
 
 %(message)s
 '''))
