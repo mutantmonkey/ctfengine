@@ -278,6 +278,23 @@ def crack_submissions(password_id):
             password=password, submissions=submissions)
 
 
+@app.route('/passwords/<string:algo>')
+def list_hashes(algo):
+    passwords = database.conn.query(Password).\
+            filter(Password.algo == algo).all()
+    if not passwords:
+        abort(404)
+
+    hashed = [pw.password for pw in passwords]
+    if request.wants_json():
+        return jsonify({
+            'algo': algo,
+            'hashes': hashed,
+        })
+
+    return Response("\n".join(hashed), mimetype="text/plain")
+
+
 @app.route('/live')
 def livestream():
     response = Response(sse.event_stream(), mimetype="text/event-stream")
