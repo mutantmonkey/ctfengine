@@ -78,7 +78,7 @@ def submit_flag():
 
     # mark machine as dirty if necessary
     if flag.machine:
-        machine = db.session.query(Machine).get(flag.machine)
+        machine = Machine.query.get(flag.machine)
         machine.dirty = True
 
     db.session.commit()
@@ -109,41 +109,39 @@ def submit_password():
 
         password = Password.get(entered_pw[0])
         if not password:
+            # hash not found in DB
             counts['notfound'] += 1
-            continue
-
-        # verify that the password is correct
-        if ctfengine.crack.lib.hashpw(password.algo, entered_pw[1]) !=\
+        elif ctfengine.crack.lib.hashpw(password.algo, entered_pw[1]) !=\
                 password.password:
+            # plaintext is not correct for hash
             counts['bad'] += 1
-            continue
+        else:
+            if not handle:
+                # handle does not exist, create
+                handle = Handle(entered_handle, 0)
+                db.session.add(handle)
+                db.session.commit()
 
-        # search for handle
-        if not handle:
-            handle = Handle(entered_handle, 0)
-            db.session.add(handle)
-            db.session.commit()
+            # look for existing entries
+            existing_entry = PasswordEntry.query.filter(
+                PasswordEntry.handle == handle.id,
+                PasswordEntry.password == password.id).first()
+            if existing_entry:
+                counts['duplicate'] += 1
+            else:
+                counts['good'] += 1
 
-        existing_entry = PasswordEntry.query.filter(
-            PasswordEntry.handle == handle.id,
-            PasswordEntry.password == password.id).first()
-        if existing_entry:
-            counts['duplicate'] += 1
-            continue
+                # update points for user
+                handle.score += password.points
 
-        counts['good'] += 1
-
-        # update points for user
-        handle.score += password.points
-
-        # log password submission
-        entry = PasswordEntry(handle.id,
-                              password.id,
-                              entered_pw[1],
-                              request.remote_addr,
-                              request.user_agent.string)
-        db.session.add(entry)
-        db.session.commit()
+                # log password submission
+                entry = PasswordEntry(handle.id,
+                                      password.id,
+                                      entered_pw[1],
+                                      request.remote_addr,
+                                      request.user_agent.string)
+                db.session.add(entry)
+                db.session.commit()
 
     if counts['good'] > 0:
         sse.send("score: {handle_id:d}: password".format(handle_id=handle.id))
@@ -160,7 +158,7 @@ def submit_password():
 def dashboard():
     scores = Handle.top_scores()
     total_points = Flag.total_points() + Password.total_points()
-    machines = db.session.query(Machine).order_by(Machine.hostname)
+    machines = Machine.query.order_by(Machine.hostname)
 
     if request.wants_json():
         return jsonify({
@@ -178,9 +176,7 @@ def dashboard():
 
 @app.route('/breakdown/<int:handle_id>')
 def score_breakdown(handle_id):
-    handle = db.session.query(Handle).get(handle_id)
-    if not handle:
-        abort(404)
+    handle = Handle.query.get_or_404(handle_id)
 
     flags = db.session.query(FlagEntry, Flag).\
         filter(FlagEntry.handle == handle_id).\
@@ -226,9 +222,7 @@ def score_breakdown(handle_id):
 
 @app.route('/flag/<int:flag_id>')
 def pwn_submissions(flag_id):
-    flag = db.session.query(Flag).get(flag_id)
-    if not flag:
-        abort(404)
+    flag = Flag.query.get_or_404(flag_id)
 
     submissions = db.session.query(FlagEntry, Handle).\
         filter(FlagEntry.flag == flag.id).\
@@ -255,9 +249,7 @@ def pwn_submissions(flag_id):
 
 @app.route('/password/<int:password_id>')
 def crack_submissions(password_id):
-    password = db.session.query(Password).get(password_id)
-    if not password:
-        abort(404)
+    password = Password.query.get_or_404(password_id)
 
     submissions = db.session.query(PasswordEntry, Handle).\
         filter(PasswordEntry.password == password.id).\
@@ -289,7 +281,7 @@ def crack_submissions(password_id):
 
 @app.route('/passwords/<string:algo>')
 def list_hashes(algo):
-    passwords = db.session.query(Password).filter(Password.algo == algo).all()
+    passwords = Password.query.filter(Password.algo == algo).all()
     if not passwords:
         abort(404)
 
@@ -334,3 +326,21 @@ def dashboardjs():
     resp = make_response(render_template('dashboard.js'))
     resp.headers['Content-Type'] = "application/javascript; charset=utf-8"
     return resp
+
+
+@app.errorhandler(403)
+def error403(e):
+    return render_template('error403.html',
+                           CTF_NAME=app.config['CTF_NAME']), 403
+
+
+@app.errorhandler(404)
+def error404(e):
+    return render_template('error404.html',
+                           CTF_NAME=app.config['CTF_NAME']), 404
+
+
+@app.errorhandler(500)
+def error500(e):
+    return render_template('error500.html',
+                           CTF_NAME=app.config['CTF_NAME']), 500
