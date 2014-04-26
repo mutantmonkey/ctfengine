@@ -1,6 +1,6 @@
 import hashlib
-from flask import abort, flash, jsonify, render_template, request, redirect, \
-        url_for, Response
+from flask import abort, flash, jsonify, make_response, render_template, \
+    request, redirect, url_for, Response
 
 from ctfengine import app
 from ctfengine import db
@@ -154,10 +154,7 @@ def submit_password():
 @app.route('/dashboard')
 def dashboard():
     scores = Handle.top_scores()
-    total_points = db.session.query(
-            Flag.total_points()).first()[0] or 0
-    total_points += db.session.query(
-            Password.total_points()).first()[0] or 0
+    total_points = Flag.total_points() + Password.total_points()
     machines = db.session.query(Machine).order_by(Machine.hostname)
 
     if request.wants_json():
@@ -233,7 +230,6 @@ def pwn_submissions(flag_id):
                 'entry': serialize_date(entry.serialize()),
                 'handle': handle.serialize(),
             })
-
         return jsonify({
             'flag': flag.serialize(),
             'submissions': subdata,
@@ -309,3 +305,17 @@ def make_error(request, msg, code=400):
     else:
         flash(msg)
         return redirect(url_for('index'))
+
+
+@app.route('/js/index.js')
+def indexjs():
+    resp = make_response(render_template('index.js'))
+    resp.headers['Content-Type'] = "application/javascript; charset=utf-8"
+    return resp
+
+
+@app.route('/js/dashboard.js')
+def dashboardjs():
+    resp = make_response(render_template('dashboard.js'))
+    resp.headers['Content-Type'] = "application/javascript; charset=utf-8"
+    return resp

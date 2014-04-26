@@ -58,11 +58,5 @@
 {{ super() }}
 <script type="text/javascript" src="{{ url_for('static', filename='js/scoreboard.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/submit.js') }}"></script>
-<script type="text/javascript">
-$(function(){
-    liveScoreboard("{{ url_for('livestream') }}", "{{ url_for('index') }}", "breakdown/");
-    ajaxForm($('#submit_flag_form'), 'flag');
-    ajaxForm($('#submit_password_form'), 'password');
-});
-</script>
+<script type="text/javascript" src="{{ url_for('indexjs') }}"></script>
 {% endblock %}

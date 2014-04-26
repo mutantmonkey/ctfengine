@@ -39,9 +39,5 @@
 {% block js %}
 {{ super() }}
 <script type="text/javascript" src="{{ url_for('static', filename='js/scoreboard.js') }}"></script>
-<script type="text/javascript">
-$(function(){
-    liveDashboard("{{ url_for('livestream') }}", "{{ url_for('dashboard') }}", "breakdown/");
-});
-</script>
+<script type="text/javascript" src="{{ url_for('dashboardjs') }}"></script>
 {% endblock %}
