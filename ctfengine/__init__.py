@@ -9,6 +9,7 @@ app.request_class = lib.Request
 
 db = SQLAlchemy(app)
 
+
 def format_datetime(value):
     return value.strftime("%Y-%m-%d %H:%M:%S %z")
 app.jinja_env.filters['datetime'] = format_datetime

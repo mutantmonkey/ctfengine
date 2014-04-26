@@ -30,7 +30,7 @@ class Password(db.Model):
 
     def __repr__(self):
         return '<Password: {0}: {1}: {2:d}>'.format(self.algo, self.password,
-                self.points)
+                                                    self.points)
 
     def serialize(self):
         return {
@@ -59,12 +59,13 @@ class PasswordEntry(db.Model):
         # encrypt the plaintext password before storing
         key = RSA.importKey(open(config.ENCRYPT_KEYFILE).read())
         cipher = PKCS1_OAEP.new(key)
-        self.plaintext = base64.b64encode(
-                cipher.encrypt(plaintext.encode('utf-8')))
+        self.plaintext = base64.b64encode(cipher.encrypt(plaintext.encode(
+            'utf-8')))
 
     def __repr__(self):
         return '<PasswordEntry: {0:d}: {1}: {2}>'.format(self.handle,
-                self.password, self.datetime)
+                                                         self.password,
+                                                         self.datetime)
 
     def serialize(self, pw=None):
         data = {

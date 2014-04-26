@@ -36,8 +36,10 @@ def index():
             'total_points': total_points,
         })
 
-    return render_template('index.html', CTF_NAME=app.config['CTF_NAME'],
-            scores=scores, total_points=total_points)
+    return render_template('index.html',
+                           CTF_NAME=app.config['CTF_NAME'],
+                           scores=scores,
+                           total_points=total_points)
 
 
 @app.route('/submit', methods=['POST'])
@@ -59,8 +61,8 @@ def submit_flag():
         db.session.commit()
 
     existing_entry = FlagEntry.query.filter(
-            FlagEntry.handle == handle.id,
-            FlagEntry.flag == flag.id).first()
+        FlagEntry.handle == handle.id,
+        FlagEntry.flag == flag.id).first()
     if existing_entry:
         return make_error(request, "You may not resubmit flags.")
 
@@ -68,8 +70,10 @@ def submit_flag():
     handle.score += flag.points
 
     # log flag submission
-    entry = FlagEntry(handle.id, flag.id,
-            request.remote_addr, request.user_agent.string)
+    entry = FlagEntry(handle.id,
+                      flag.id,
+                      request.remote_addr,
+                      request.user_agent.string)
     db.session.add(entry)
 
     # mark machine as dirty if necessary
@@ -79,8 +83,7 @@ def submit_flag():
 
     db.session.commit()
 
-    sse.send("score: {handle_id}: flag".format(\
-            handle_id=handle.id))
+    sse.send("score: {handle_id}: flag".format(handle_id=handle.id))
 
     if request.wants_json():
         return jsonify(serialize_date(entry.serialize()))
@@ -101,8 +104,8 @@ def submit_password():
     for entered_pw in entered_pws:
         entered_pw = entered_pw.split(':', 1)
         if len(entered_pw) <= 1:
-            return make_error(request, "Cracked passwords must be in the "\
-                    "hashed:plaintext format.")
+            return make_error(request, "Cracked passwords must be in the "
+                              "hashed:plaintext format.")
 
         password = Password.get(entered_pw[0])
         if not password:
@@ -122,8 +125,8 @@ def submit_password():
             db.session.commit()
 
         existing_entry = PasswordEntry.query.filter(
-                PasswordEntry.handle == handle.id,
-                PasswordEntry.password == password.id).first()
+            PasswordEntry.handle == handle.id,
+            PasswordEntry.password == password.id).first()
         if existing_entry:
             counts['duplicate'] += 1
             continue
@@ -134,20 +137,22 @@ def submit_password():
         handle.score += password.points
 
         # log password submission
-        entry = PasswordEntry(handle.id, password.id,
-                entered_pw[1], request.remote_addr, request.user_agent.string)
+        entry = PasswordEntry(handle.id,
+                              password.id,
+                              entered_pw[1],
+                              request.remote_addr,
+                              request.user_agent.string)
         db.session.add(entry)
         db.session.commit()
 
     if counts['good'] > 0:
-        sse.send("score: {handle_id:d}: password".format(\
-                handle_id=handle.id))
+        sse.send("score: {handle_id:d}: password".format(handle_id=handle.id))
 
     if request.wants_json():
         return jsonify({'status': counts})
-    flash("{good} passwords accepted, {notfound} not found in database, "\
-            "{duplicate} passwords already scored, and {bad} incorrect "\
-            "plaintexts.".format(**counts))
+    flash("{good} passwords accepted, {notfound} not found in database, "
+          "{duplicate} passwords already scored, and {bad} incorrect "
+          "plaintexts.".format(**counts))
     return redirect(url_for('index'))
 
 
@@ -164,8 +169,11 @@ def dashboard():
             'machines': [m.serialize() for m in machines],
         })
 
-    return render_template('dashboard.html', CTF_NAME=app.config['CTF_NAME'],
-            scores=scores, total_points=total_points, machines=machines)
+    return render_template('dashboard.html',
+                           CTF_NAME=app.config['CTF_NAME'],
+                           scores=scores,
+                           total_points=total_points,
+                           machines=machines)
 
 
 @app.route('/breakdown/<int:handle_id>')
@@ -175,17 +183,17 @@ def score_breakdown(handle_id):
         abort(404)
 
     flags = db.session.query(FlagEntry, Flag).\
-            filter(FlagEntry.handle == handle_id).\
-            join(Flag, FlagEntry.flag == Flag.id).\
-            order_by(FlagEntry.datetime).all()
+        filter(FlagEntry.handle == handle_id).\
+        join(Flag, FlagEntry.flag == Flag.id).\
+        order_by(FlagEntry.datetime).all()
     score_flags = 0
     for entry in flags:
         score_flags += entry[1].points
 
     passwords = db.session.query(PasswordEntry, Password).\
-            filter(PasswordEntry.handle == handle_id).\
-            join(Password, PasswordEntry.password == Password.id).\
-            order_by(PasswordEntry.datetime).all()
+        filter(PasswordEntry.handle == handle_id).\
+        join(Password, PasswordEntry.password == Password.id).\
+        order_by(PasswordEntry.datetime).all()
     score_passwords = 0
     for entry in passwords:
         score_passwords += entry[1].points
@@ -207,9 +215,13 @@ def score_breakdown(handle_id):
             'score_passwords': score_passwords,
         })
 
-    return render_template('breakdown.html', CTF_NAME=app.config['CTF_NAME'],
-            handle=handle, flags=flags, passwords=passwords,
-            score_flags=score_flags, score_passwords=score_passwords)
+    return render_template('breakdown.html',
+                           CTF_NAME=app.config['CTF_NAME'],
+                           handle=handle,
+                           flags=flags,
+                           passwords=passwords,
+                           score_flags=score_flags,
+                           score_passwords=score_passwords)
 
 
 @app.route('/flag/<int:flag_id>')
@@ -219,9 +231,9 @@ def pwn_submissions(flag_id):
         abort(404)
 
     submissions = db.session.query(FlagEntry, Handle).\
-            filter(FlagEntry.flag == flag.id).\
-            join(Handle, Handle.id == FlagEntry.handle).\
-            order_by(FlagEntry.datetime).all()
+        filter(FlagEntry.flag == flag.id).\
+        join(Handle, Handle.id == FlagEntry.handle).\
+        order_by(FlagEntry.datetime).all()
 
     if request.wants_json():
         subdata = []
@@ -235,8 +247,10 @@ def pwn_submissions(flag_id):
             'submissions': subdata,
         })
 
-    return render_template('pwn_submissions.html', CTF_NAME=app.config['CTF_NAME'],
-            flag=flag, submissions=submissions)
+    return render_template('pwn_submissions.html',
+                           CTF_NAME=app.config['CTF_NAME'],
+                           flag=flag,
+                           submissions=submissions)
 
 
 @app.route('/password/<int:password_id>')
@@ -246,9 +260,9 @@ def crack_submissions(password_id):
         abort(404)
 
     submissions = db.session.query(PasswordEntry, Handle).\
-            filter(PasswordEntry.password == password.id).\
-            join(Handle, Handle.id == PasswordEntry.handle).\
-            order_by(PasswordEntry.datetime).all()
+        filter(PasswordEntry.password == password.id).\
+        join(Handle, Handle.id == PasswordEntry.handle).\
+        order_by(PasswordEntry.datetime).all()
 
     if request.wants_json():
         def serialize_date(item):
@@ -267,14 +281,15 @@ def crack_submissions(password_id):
             'submissions': subdata,
         })
 
-    return render_template('crack_submissions.html', CTF_NAME=app.config['CTF_NAME'],
-            password=password, submissions=submissions)
+    return render_template('crack_submissions.html',
+                           CTF_NAME=app.config['CTF_NAME'],
+                           password=password,
+                           submissions=submissions)
 
 
 @app.route('/passwords/<string:algo>')
 def list_hashes(algo):
-    passwords = db.session.query(Password).\
-            filter(Password.algo == algo).all()
+    passwords = db.session.query(Password).filter(Password.algo == algo).all()
     if not passwords:
         abort(404)
 

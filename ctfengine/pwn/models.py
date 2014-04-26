@@ -22,7 +22,8 @@ class FlagEntry(db.Model):
 
     def __repr__(self):
         return '<FlagEntry: {0:d}: {1}: {2}>'.format(self.handle,
-                self.flag, self.datetime)
+                                                     self.flag,
+                                                     self.datetime)
 
     def serialize(self, flag=None):
         data = {
