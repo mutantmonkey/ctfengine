@@ -22,6 +22,7 @@ while True:
             points = int(raw_input("Points: "))
 
             f = Flag(name, flag, points)
+            f.machine = m.id
             db.session.add(f)
             db.session.commit()
         else:
