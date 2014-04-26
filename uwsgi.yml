@@ -1,0 +1,12 @@
+uwsgi:
+    procname-prefix-spaced: ctfengine
+    socket: /srv/http/ctfengine/ctfengine.sock
+    master: true
+    processes: 20
+    gevent: 100
+    chdir: /srv/http/ctfengine
+    module: ctfengine
+    callable: app
+    chmod-socket: 600
+    disable-logging: 1
+    touch-reload: /srv/http/ctfengine/reload.txt
