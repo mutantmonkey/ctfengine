@@ -46,7 +46,7 @@ class Flag(db.Model):
 
     def __init__(self, name, flag, points):
         h = hashlib.sha512()
-        h.update(flag + ctfengine.config.SALT)
+        h.update(flag + config.SALT)
 
         self.name = name
         self.flag = h.hexdigest()
