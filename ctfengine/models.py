@@ -1,15 +1,11 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, UnicodeText, \
-        DateTime, Unicode, Boolean, desc, func
-
-import ctfengine.config
-import ctfengine.database
+from ctfengine import db
 
 
-class Handle(ctfengine.database.Base):
+class Handle(db.Model):
     __tablename__ = "handles"
-    id = Column(Integer, primary_key=True)
-    handle = Column(UnicodeText())
-    score = Column(Integer)
+    id = db.Column(db.Integer, primary_key=True)
+    handle = db.Column(db.UnicodeText())
+    score = db.Column(db.Integer)
 
     def __init__(self, handle, score):
         self.handle = handle
@@ -20,8 +16,8 @@ class Handle(ctfengine.database.Base):
         return Handle.query.filter(Handle.handle == handle).first()
 
     @staticmethod
-    def topscores(lim=25):
-        return Handle.query.order_by(desc(Handle.score)).limit(lim)
+    def top_scores(lim=25):
+        return Handle.query.order_by(db.desc(Handle.score)).limit(lim)
 
     def __repr__(self):
         return '<Handle: {0}: {1:d}>'.format(self.handle, self.score)

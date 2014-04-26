@@ -1,21 +1,19 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, Text, \
-        UnicodeText, DateTime, Unicode, Boolean, desc, func
 import base64
 import datetime
-import ctfengine.config
-import ctfengine.database
+from ctfengine import config
+from ctfengine import db
 from ctfengine.models import Handle
 
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
 
 
-class Password(ctfengine.database.Base):
+class Password(db.Model):
     __tablename__ = "passwords"
-    id = Column(Integer, primary_key=True)
-    algo = Column(String(64))
-    password = Column(String, index=True, unique=True, nullable=False)
-    points = Column(Integer)
+    id = db.Column(db.Integer, primary_key=True)
+    algo = db.Column(db.String(64))
+    password = db.Column(db.String, index=True, unique=True, nullable=False)
+    points = db.Column(db.Integer)
 
     def __init__(self, algo, password, points):
         self.algo = algo
@@ -28,7 +26,7 @@ class Password(ctfengine.database.Base):
 
     @staticmethod
     def total_points():
-        return func.sum(Password.points)
+        return db.session.query(db.func.sum(Password.points)).first()[0] or 0
 
     def __repr__(self):
         return '<Password: {0}: {1}: {2:d}>'.format(self.algo, self.password,
@@ -42,15 +40,15 @@ class Password(ctfengine.database.Base):
         }
 
 
-class PasswordEntry(ctfengine.database.Base):
+class PasswordEntry(db.Model):
     __tablename__ = "password_entries"
-    id = Column(Integer, primary_key=True)
-    handle = Column(Integer, ForeignKey('handles.id'))
-    password = Column(Integer, ForeignKey('passwords.id'))
-    plaintext = Column(Text)
-    datetime = Column(DateTime(), default=datetime.datetime.now)
-    ip = Column(String(255))
-    user_agent = Column(Unicode(255))
+    id = db.Column(db.Integer, primary_key=True)
+    handle = db.Column(db.Integer, db.ForeignKey('handles.id'))
+    password = db.Column(db.Integer, db.ForeignKey('passwords.id'))
+    plaintext = db.Column(db.Text)
+    datetime = db.Column(db.DateTime(), default=datetime.datetime.now)
+    ip = db.Column(db.String(255))
+    user_agent = db.Column(db.Unicode(255))
 
     def __init__(self, handle, password, plaintext, ip="", user_agent=""):
         self.handle = handle
@@ -59,7 +57,7 @@ class PasswordEntry(ctfengine.database.Base):
         self.user_agent = user_agent
 
         # encrypt the plaintext password before storing
-        key = RSA.importKey(open(ctfengine.config.ENCRYPT_KEYFILE).read())
+        key = RSA.importKey(open(config.ENCRYPT_KEYFILE).read())
         cipher = PKCS1_OAEP.new(key)
         self.plaintext = base64.b64encode(
                 cipher.encrypt(plaintext.encode('utf-8')))

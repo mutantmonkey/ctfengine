@@ -1,10 +1,13 @@
 import config
 import lib
 from flask import Flask, Request
+from flask.ext.sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 app.config.from_object(config)
 app.request_class = lib.Request
+
+db = SQLAlchemy(app)
 
 def format_datetime(value):
     return value.strftime("%Y-%m-%d %H:%M:%S %z")

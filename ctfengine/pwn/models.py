@@ -1,20 +1,18 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, UnicodeText, \
-        DateTime, Unicode, Boolean, desc, func
 import datetime
 import hashlib
-import ctfengine.config
-import ctfengine.database
+from ctfengine import config
+from ctfengine import db
 from ctfengine.models import Handle
 
 
-class FlagEntry(ctfengine.database.Base):
+class FlagEntry(db.Model):
     __tablename__ = "flag_entries"
-    id = Column(Integer, primary_key=True)
-    handle = Column(Integer, ForeignKey('handles.id'))
-    flag = Column(Integer, ForeignKey('flags.id'))
-    datetime = Column(DateTime(), default=datetime.datetime.now)
-    ip = Column(String(255))
-    user_agent = Column(Unicode(255))
+    id = db.Column(db.Integer, primary_key=True)
+    handle = db.Column(db.Integer, db.ForeignKey('handles.id'))
+    flag = db.Column(db.Integer, db.ForeignKey('flags.id'))
+    datetime = db.Column(db.DateTime(), default=datetime.datetime.now)
+    ip = db.Column(db.String(255))
+    user_agent = db.Column(db.Unicode(255))
 
     def __init__(self, handle, flag, ip="", user_agent=""):
         self.handle = handle
@@ -37,13 +35,13 @@ class FlagEntry(ctfengine.database.Base):
         return data
 
 
-class Flag(ctfengine.database.Base):
+class Flag(db.Model):
     __tablename__ = "flags"
-    id = Column(Integer, primary_key=True)
-    name = Column(UnicodeText())
-    flag = Column(String(128), index=True, unique=True, nullable=False)
-    points = Column(Integer)
-    machine = Column(Integer, ForeignKey('machines.id'))
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.UnicodeText())
+    flag = db.Column(db.String(128), index=True, unique=True, nullable=False)
+    points = db.Column(db.Integer)
+    machine = db.Column(db.Integer, db.ForeignKey('machines.id'))
 
     def __init__(self, name, flag, points):
         h = hashlib.sha512()
@@ -56,12 +54,12 @@ class Flag(ctfengine.database.Base):
     @staticmethod
     def get(flag):
         h = hashlib.sha512()
-        h.update(flag + ctfengine.config.SALT)
+        h.update(flag + config.SALT)
         return Flag.query.filter(Flag.flag == h.hexdigest()).first()
 
     @staticmethod
     def total_points():
-        return func.sum(Flag.points)
+        return db.session.query(db.func.sum(Flag.points)).first()[0] or 0
 
     def __repr__(self):
         return '<Flag: {0}: {1:d}>'.format(self.name, self.points)
@@ -73,11 +71,11 @@ class Flag(ctfengine.database.Base):
         }
 
 
-class Machine(ctfengine.database.Base):
+class Machine(db.Model):
     __tablename__ = "machines"
-    id = Column(Integer, primary_key=True)
-    hostname = Column(String(255))
-    dirty = Column(Boolean, default=False)
+    id = db.Column(db.Integer, primary_key=True)
+    hostname = db.Column(db.String(255))
+    dirty = db.Column(db.Boolean, default=False)
 
     def __init__(self, hostname):
         self.hostname = hostname

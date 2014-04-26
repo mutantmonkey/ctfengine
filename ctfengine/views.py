@@ -3,7 +3,7 @@ from flask import abort, flash, jsonify, render_template, request, redirect, \
         url_for, Response
 
 from ctfengine import app
-from ctfengine import database
+from ctfengine import db
 from ctfengine import lib
 from ctfengine import models
 from ctfengine.models import Handle
@@ -27,11 +27,8 @@ def serialize_dates(items):
 @app.route('/')
 @app.route('/scores')
 def index():
-    scores = Handle.topscores()
-    total_points = database.conn.query(
-            Flag.total_points()).first()[0] or 0
-    total_points += database.conn.query(
-            Password.total_points()).first()[0] or 0
+    scores = Handle.top_scores()
+    total_points = Flag.total_points() + Password.total_points()
 
     if request.wants_json():
         return jsonify({
@@ -58,8 +55,8 @@ def submit_flag():
     handle = Handle.get(entered_handle)
     if not handle:
         handle = Handle(entered_handle, 0)
-        database.conn.add(handle)
-        database.conn.commit()
+        db.session.add(handle)
+        db.session.commit()
 
     existing_entry = FlagEntry.query.filter(
             FlagEntry.handle == handle.id,
@@ -73,14 +70,14 @@ def submit_flag():
     # log flag submission
     entry = FlagEntry(handle.id, flag.id,
             request.remote_addr, request.user_agent.string)
-    database.conn.add(entry)
+    db.session.add(entry)
 
     # mark machine as dirty if necessary
     if flag.machine:
-        machine = database.conn.query(Machine).get(flag.machine)
+        machine = db.session.query(Machine).get(flag.machine)
         machine.dirty = True
 
-    database.conn.commit()
+    db.session.commit()
 
     sse.send("score: {handle_id}: flag".format(\
             handle_id=handle.id))
@@ -121,8 +118,8 @@ def submit_password():
         # search for handle
         if not handle:
             handle = Handle(entered_handle, 0)
-            database.conn.add(handle)
-            database.conn.commit()
+            db.session.add(handle)
+            db.session.commit()
 
         existing_entry = PasswordEntry.query.filter(
                 PasswordEntry.handle == handle.id,
@@ -139,8 +136,8 @@ def submit_password():
         # log password submission
         entry = PasswordEntry(handle.id, password.id,
                 entered_pw[1], request.remote_addr, request.user_agent.string)
-        database.conn.add(entry)
-        database.conn.commit()
+        db.session.add(entry)
+        db.session.commit()
 
     if counts['good'] > 0:
         sse.send("score: {handle_id:d}: password".format(\
@@ -156,12 +153,12 @@ def submit_password():
 
 @app.route('/dashboard')
 def dashboard():
-    scores = Handle.topscores()
-    total_points = database.conn.query(
+    scores = Handle.top_scores()
+    total_points = db.session.query(
             Flag.total_points()).first()[0] or 0
-    total_points += database.conn.query(
+    total_points += db.session.query(
             Password.total_points()).first()[0] or 0
-    machines = database.conn.query(Machine).order_by(Machine.hostname)
+    machines = db.session.query(Machine).order_by(Machine.hostname)
 
     if request.wants_json():
         return jsonify({
@@ -176,11 +173,11 @@ def dashboard():
 
 @app.route('/breakdown/<int:handle_id>')
 def score_breakdown(handle_id):
-    handle = database.conn.query(Handle).get(handle_id)
+    handle = db.session.query(Handle).get(handle_id)
     if not handle:
         abort(404)
 
-    flags = database.conn.query(FlagEntry, Flag).\
+    flags = db.session.query(FlagEntry, Flag).\
             filter(FlagEntry.handle == handle_id).\
             join(Flag, FlagEntry.flag == Flag.id).\
             order_by(FlagEntry.datetime).all()
@@ -188,7 +185,7 @@ def score_breakdown(handle_id):
     for entry in flags:
         score_flags += entry[1].points
 
-    passwords = database.conn.query(PasswordEntry, Password).\
+    passwords = db.session.query(PasswordEntry, Password).\
             filter(PasswordEntry.handle == handle_id).\
             join(Password, PasswordEntry.password == Password.id).\
             order_by(PasswordEntry.datetime).all()
@@ -220,11 +217,11 @@ def score_breakdown(handle_id):
 
 @app.route('/flag/<int:flag_id>')
 def pwn_submissions(flag_id):
-    flag = database.conn.query(Flag).get(flag_id)
+    flag = db.session.query(Flag).get(flag_id)
     if not flag:
         abort(404)
 
-    submissions = database.conn.query(FlagEntry, Handle).\
+    submissions = db.session.query(FlagEntry, Handle).\
             filter(FlagEntry.flag == flag.id).\
             join(Handle, Handle.id == FlagEntry.handle).\
             order_by(FlagEntry.datetime).all()
@@ -248,11 +245,11 @@ def pwn_submissions(flag_id):
 
 @app.route('/password/<int:password_id>')
 def crack_submissions(password_id):
-    password = database.conn.query(Password).get(password_id)
+    password = db.session.query(Password).get(password_id)
     if not password:
         abort(404)
 
-    submissions = database.conn.query(PasswordEntry, Handle).\
+    submissions = db.session.query(PasswordEntry, Handle).\
             filter(PasswordEntry.password == password.id).\
             join(Handle, Handle.id == PasswordEntry.handle).\
             order_by(PasswordEntry.datetime).all()
@@ -280,7 +277,7 @@ def crack_submissions(password_id):
 
 @app.route('/passwords/<string:algo>')
 def list_hashes(algo):
-    passwords = database.conn.query(Password).\
+    passwords = db.session.query(Password).\
             filter(Password.algo == algo).all()
     if not passwords:
         abort(404)

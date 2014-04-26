@@ -1,5 +1,5 @@
 CTF_NAME = "ctfengine"
-DATABASE = 'sqlite:///ctfengine.db'
+SQLALCHEMY_DATABASE_URI = 'sqlite:///ctfengine.db'
 DEBUG = False
 SECRET_KEY = ""
 SALT = ""
