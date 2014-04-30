@@ -4,7 +4,9 @@ uwsgi:
     master: true
     processes: 20
     gevent: 100
+    vacuum: true
     chdir: /srv/http/ctfengine
+    plugin: python
     module: ctfengine
     callable: app
     chmod-socket: 600
